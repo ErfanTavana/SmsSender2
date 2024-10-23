@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
-    'axes',
 ]
 
 MIDDLEWARE = [
@@ -51,7 +50,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'axes.middleware.AxesMiddleware',
 ]
 
 ROOT_URLCONF = 'SmsSender2.urls'
@@ -125,13 +123,3 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
-
-AXES_FAILURE_LIMIT = 20  # تعداد تلاش‌های ناموفق قبل از بلاک شدن
-AXES_COOLOFF_TIME = 1  # مدت زمان بلاک شدن به ساعت (مثلاً 1 ساعت)
-AXES_LOCK_OUT_AT_FAILURE = True  #
-AXES_ENABLED = True
-# بلاک شدن پس از تعداد مشخص تلاش‌های ناموفق
-AUTHENTICATION_BACKENDS = (
-    'axes.backends.AxesStandaloneBackend',  # یا از AxesBackend استفاده کنید
-    'django.contrib.auth.backends.ModelBackend',  # این خط را نگه دارید تا احراز هویت پیش‌فرض Django کار کند
-)
