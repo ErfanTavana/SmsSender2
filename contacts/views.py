@@ -23,9 +23,8 @@ class ContactApiView(APIView):
 
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
-
     def post(self, request):
-        # استفاده از تابع کمکی
+        # استفاده از تابع کمکی برای بررسی کاربر و سازمان
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
             return error_response
@@ -33,8 +32,15 @@ class ContactApiView(APIView):
         serializer = ContactSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save(created_by=user, organization=organization_user)
-            return Response({'message': 'مخاطب با موفقیت ایجاد شد.', 'data': serializer.data},
-                            status=status.HTTP_201_CREATED)
+            return Response({
+                'message': 'مخاطب با موفقیت ایجاد شد.',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
 
-        return Response({'message': 'داده‌های وارد شده نامعتبر است.', 'data': serializer.errors},
-                        status=status.HTTP_400_BAD_REQUEST)
+        # پردازش خطاها برای استخراج اولین پیام خطا
+        first_error_message = next(iter(serializer.errors.values()))[0]
+
+        return Response({
+            'message': first_error_message,  # اولین پیام خطا به عنوان رشته در message
+            'data': serializer.errors  # نگهداری همه خطاها در data
+        }, status=status.HTTP_400_BAD_REQUEST)
