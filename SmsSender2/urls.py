@@ -19,5 +19,7 @@ from django.urls import path, include  # Import include for including app URLs
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('accounts.urls')),  # Include URLs from accounts app
+    path('accounts/', include('accounts.urls')),
+    path('contacts/', include('contacts.urls')),
+
 ]
