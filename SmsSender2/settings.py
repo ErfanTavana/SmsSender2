@@ -35,10 +35,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'accounts.apps.AccountsConfig',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    # my app
+    'accounts',
+    'organizations',
+    'contacts',
 ]
 
 MIDDLEWARE = [
@@ -122,4 +125,3 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
-
