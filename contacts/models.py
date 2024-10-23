@@ -1,6 +1,7 @@
 from django.db import models
 from organizations.models import Organization,Group
 from django.contrib.auth import get_user_model
+User = get_user_model()
 
 class Contact(models.Model):
     """
@@ -15,7 +16,7 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=150, verbose_name="نام خانوادگی")
     phone_number = models.CharField(max_length=15, verbose_name="شماره تلفن همراه")
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, verbose_name="جنسیت")
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, verbose_name="کاربر ایجاد کننده")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر ایجاد کننده")
     groups = models.ManyToManyField(Group, verbose_name="گروه‌ها", related_name="contacts")
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name="سازمان", related_name="contacts")
 

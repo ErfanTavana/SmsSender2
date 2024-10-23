@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 import uuid
-from organizations.models import Organization ,Group
 
 
 class CustomUserManager(BaseUserManager):
@@ -45,9 +44,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField("active", default=True,
                                     help_text="Designates whether this user should be treated as active.")
     date_joined = models.DateTimeField("date joined", default=timezone.now)
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True,
+    organization = models.ForeignKey('organizations.Organization', on_delete=models.SET_NULL, null=True, blank=True,
                                      verbose_name="سازمان")
-    groups = models.ManyToManyField(Group, verbose_name="گروه‌ها", related_name="users",
+
+    groups = models.ManyToManyField("organizations.Group", verbose_name="گروه‌ها", related_name="users",
                                     blank=True)  # ارتباط با گروه‌ها
 
     USERNAME_FIELD = 'phone_number'  # Set phone_number as the unique identifier for authentication
