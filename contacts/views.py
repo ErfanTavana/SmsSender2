@@ -85,4 +85,4 @@ class ContactApiView(APIView):
                 'contact_info': serializer.data,
                 'last_message': last_message.text if last_message else None
             }
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_200_OK)
