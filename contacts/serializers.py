@@ -2,11 +2,12 @@ from rest_framework import serializers
 from organizations.models import Group
 from .models import Contact
 from SmsSender2.utils import normalize_phone_number
+
+
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ['id', 'name']
-
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -38,7 +39,7 @@ class ContactSerializer(serializers.ModelSerializer):
         # بررسی اینکه همه گروه‌های انتخابی توسط کاربر در گروه‌های کاربر موجود هستند
         for group in groups:
             if group not in user_groups:
-                raise serializers.ValidationError(f"شما به گروه '{group.name}' دسترسی ندارید.")
+                raise serializers.ValidationError(f"شما به گروه انتخابی دسترسی ندارید.")
 
         return groups
 
@@ -49,3 +50,22 @@ class ContactSerializer(serializers.ModelSerializer):
         validated_data['created_by'] = self.context['request'].user
         validated_data['organization'] = self.context['request'].user.organization
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Update contact information and groups.
+        """
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.gender = validated_data.get('gender', instance.gender)
+
+        # به‌روزرسانی گروه‌ها
+        new_groups = validated_data.get('groups', [])
+
+        # افزودن گروه‌های جدید به لیست فعلی
+        for group in new_groups:
+            if group not in instance.groups.all():
+                instance.groups.add(group)
+
+        instance.save()
+        return instance
