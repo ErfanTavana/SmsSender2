@@ -34,7 +34,7 @@ class ContactApiView(APIView):
             serializer.save(created_by=user, organization=organization_user)
             return Response({
                 'message': 'مخاطب با موفقیت ایجاد شد.',
-                'data': serializer.data
+                'data': {'contact_info': serializer.data}
             }, status=status.HTTP_201_CREATED)
 
         # پردازش خطاها برای استخراج اولین پیام خطا
