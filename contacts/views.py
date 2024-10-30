@@ -86,3 +86,6 @@ class ContactApiView(APIView):
                 'last_message': last_message.text if last_message else None
             }
         }, status=status.HTTP_200_OK)
+
+
+
