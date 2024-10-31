@@ -6,6 +6,8 @@ from django.views import View
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+
+
 class LoginAPIView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -20,20 +22,20 @@ class LoginAPIView(APIView):
             'message': 'نام کاربری یا رمز عبور نادرست است.'
         }, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(View):
     def get(self, request):
-        # اگر کاربر لاگین باشد، او را به صفحه اصلی هدایت کنید
         if request.user.is_authenticated:
-            return redirect('home')  # نام URL صفحه اصلی شما
-        return render(request, 'login.html')
+            return redirect('contacts_list')
+        return render(request, 'accounts/login.html')
 
     def post(self, request):
-        username = request.POST.get('username')
+        phone_number = request.POST.get('phone_number')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
+        user = authenticate(phone_number=phone_number, password=password)
+        if user:
             login(request, user)
-            return redirect('home')  # نام URL صفحه اصلی
+            return redirect('contacts_list')
         else:
-            return HttpResponse('نام کاربری یا رمز عبور نادرست است.')
+            return render(request, 'accounts/login.html', {'message': 'نام کاربری یا رمز عبور نادرست است.', 'data': {}})

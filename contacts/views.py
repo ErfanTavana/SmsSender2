@@ -7,6 +7,13 @@ from contacts.models import Contact
 from organizations.models import Group
 from .utils import check_user_organization
 from text_messages.models import Message
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.views import View
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
 
 
 class ContactApiView(APIView):
@@ -88,4 +95,8 @@ class ContactApiView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-
+class ContactsView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        return render(request, 'contacts/contacts_list.html')
