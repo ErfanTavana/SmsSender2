@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ایجاد پیام جدید{% endblock %}
+
+{% block content %}
+    <!-- Form Start -->
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">فرم ایجاد پیام جدید</div>
+            <div class="card-body">
+                <form action="#" method="post">
+                    <div class="mb-3">
+                        <label for="text" class="form-label">متن پیام</label>
+                        <textarea class="form-control" id="text" name="text" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="organization" class="form-label">سازمان</label>
+                        <select class="form-select" id="organization" name="organization">
+                            <option selected>انتخاب کنید</option>
+                            <option value="1">سازمان ۱</option>
+                            <option value="2">سازمان ۲</option>
+                            <!-- سایر گزینه‌ها -->
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="message_type" class="form-label">نوع ارسال پیام</label>
+                        <select class="form-select" id="message_type" name="message_type">
+                            <option value="همگانی">همگانی</option>
+                            <option value="فردی">فردی</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input
+                                type="checkbox"
+                                class="form-check-input"
+                                id="is_approved"
+                                name="is_approved"
+                        />
+                        <label class="form-check-label" for="is_approved">آیا پیام تایید شده است؟</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">ارسال پیام</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Form End -->
+{% endblock %}

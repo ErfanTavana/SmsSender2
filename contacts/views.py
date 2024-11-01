@@ -94,9 +94,9 @@ class ContactApiView(APIView):
             }
         }, status=status.HTTP_200_OK)
 
-
 class ContactsView(View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
+
         return render(request, 'contacts/contacts_list.html')

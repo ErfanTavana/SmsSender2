@@ -4,16 +4,16 @@ from .models import Message
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = (
-        'text', 'organization', 'group', 'created_by', 'message_type', 'is_approved', 'created_at'
+        'text', 'organization' ,'created_by', 'message_type', 'is_approved', 'created_at'
     )
-    search_fields = ('text', 'created_by__username', 'organization__name', 'group__name')
-    list_filter = ('message_type', 'is_approved', 'organization', 'group')
+    search_fields = ('text', 'created_by__username', 'organization__name')
+    list_filter = ('message_type', 'is_approved', 'organization')
     ordering = ('-created_at',)
     readonly_fields = ('created_at',)
 
     fieldsets = (
         (None, {
-            'fields': ('text', 'organization', 'group', 'created_by', 'message_type', 'is_approved', 'created_at')
+            'fields': ('text', 'organization', 'created_by', 'message_type', 'is_approved', 'created_at')
         }),
     )
 

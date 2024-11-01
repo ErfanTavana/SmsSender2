@@ -16,8 +16,6 @@ class Message(models.Model):
     organization = models.ForeignKey("organizations.Organization", on_delete=models.SET_NULL, null=True, blank=True,
                                      verbose_name="سازمان")
 
-    group = models.ForeignKey("organizations.Group", on_delete=models.CASCADE, verbose_name="گروه", related_name='messages',
-                              null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="ایجاد کننده")
     message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE_CHOICES, verbose_name="نوع ارسال پیام")
     is_approved = models.BooleanField(default=False, verbose_name="آیا پیام تایید شده است؟")
