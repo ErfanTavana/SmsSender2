@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لیست پیام‌ها{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+        <h2>لیست پیام‌ها</h2>
+        <table class="table" style="border-collapse: collapse; width: 100%;">
+            <thead>
+            <tr style="background-color: #3e552b; color: white;">
+
+                <th>شماره</th> <!-- ستون شماره -->
+                <th>متن پیام</th>
+                <th>ایجاد کننده</th>
+                <th>نوع ارسال پیام</th>
+                <th>تایید شده</th>
+                <th>تاریخ ایجاد</th>
+                <th>عملیات</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for message in data.messages %}
+                <tr style="background-color: #ccd4af;">
+                    <td>{{ forloop.counter }}</td> <!-- نمایش شماره ترتیب -->
+                    <td>{{ message.text|truncatewords:10 }}</td>
+                    <td>{{ message.created_by.first_name }} {{ message.created_by.last_name }}</td>
+                    <td>{{ message.message_type }}</td>
+                    <td>{{ message.is_approved|yesno:"بله,خیر" }}</td>
+                    <td>{{ message.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <!-- دکمه ویرایش -->
+                        <a href="{% url 'message_edit' message.id %}" class="btn btn-sm btn-warning">ویرایش</a>
+
+                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ message.id }})">حذف</button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+        <script>
+            function confirmDelete(id) {
+                if (confirm("آیا مطمئن هستید که می‌خواهید این پیام را حذف کنید؟")) {
+                    window.location.href = "{% url 'delete_message' 0 %}".replace(0, id);
+                }
+            }
+        </script>
+{% endblock %}

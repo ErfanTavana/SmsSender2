@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ایجاد پیام جدید{% endblock %}
+{% block title %}ویرایش پیام{% endblock %}
 
 {% block content %}
     <!-- نمایش پیام موفقیت -->
@@ -16,30 +16,30 @@
     <!-- Form Start -->
     <div class="container mt-5">
         <div class="card">
-            <div class="card-header">فرم ایجاد پیام جدید</div>
+            <div class="card-header">فرم ویرایش پیام</div>
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="text" class="form-label">متن پیام</label>
-                        <textarea class="form-control" id="text" name="text" rows="3"></textarea>
+                        <textarea class="form-control" id="text" name="text" rows="3">{{ message.text }}</textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="message_type" class="form-label">نوع ارسال پیام</label>
                         <select class="form-select" id="message_type" name="message_type">
-                            <option value="همگانی">همگانی</option>
-                            <option value="فردی">فردی</option>
+                            <option value="همگانی" {% if message.message_type == 'همگانی' %}selected{% endif %}>همگانی</option>
+                            <option value="فردی" {% if message.message_type == 'فردی' %}selected{% endif %}>فردی</option>
                         </select>
                     </div>
 
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="is_approved" name="is_approved"/>
+                        <input type="checkbox" class="form-check-input" id="is_approved" name="is_approved" {% if message.is_approved %}checked{% endif %}/>
                         <label class="form-check-label" for="is_approved">آیا پیام تایید شده است؟</label>
                     </div>
 
                     <div class="d-flex justify-content-center">
-                        <button type="submit" class="btn btn-primary">ثبت پیام</button>
+                        <button type="submit" class="btn btn-primary">ثبت تغییرات</button>
                     </div>
                 </form>
             </div>
