@@ -10,7 +10,7 @@ urlpatterns = [
 
     path('user_list/', UserListView.as_view(), name='user_list'),
 
-    path('user_edit/<uuid:user_id>//', UserEditView.as_view(), name='user_edit'),
+    path('user_edit/<uuid:user_id>/', UserEditView.as_view(), name='user_edit'),
 
     path('users/<uuid:user_id>/delete/', UserDeleteView.as_view(), name='user_delete'),
 

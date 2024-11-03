@@ -56,6 +56,25 @@
                         {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
                 </li>
+                <li class="nav-item dropdown">
+                    <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="navbarDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                    >
+                        کاربرها
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'user_list' %}">لیست کاربر ها</a></li>
+                        <li><a class="dropdown-item" href="{% url 'user_create' %}">ایچاد کاربر جدید</a></li>
+                        {#                            <li><hr class="dropdown-divider" /></li>#}
+                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
+                    </ul>
+                </li>
+                
             </ul>
             <form class="d-flex">
                 <input
