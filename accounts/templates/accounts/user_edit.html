@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ویرایش کاربر{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>ویرایش کاربر</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- First Name -->
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">نام</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                </div>
+
+                <!-- Last Name -->
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">نام خانوادگی</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="mb-3">
+                    <label for="phone_number" class="form-label">شماره موبایل</label>
+                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
+                </div>
+
+                <!-- Gender -->
+                <div class="mb-3">
+                    <label for="gender" class="form-label">جنسیت</label>
+                    <select class="form-select" id="gender" name="gender" required>
+                        <option value="مرد" {% if user.gender == "مرد" %}selected{% endif %}>مرد</option>
+                        <option value="زن" {% if user.gender == "زن" %}selected{% endif %}>زن</option>
+                    </select>
+                </div>
+
+                <!-- Access Groups -->
+                <div class="mb-3">
+                    <label class="form-label">دسترسی‌ها</label>
+                    {% for group in groups %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="group_{{ group.id }}" name="group" value="{{ group.id }}"
+                            {% if group.id in selected_groups %}checked{% endif %}>
+                            <label class="form-check-label" for="group_{{ group.id }}">{{ group.name }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
