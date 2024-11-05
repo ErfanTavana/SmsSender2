@@ -1,35 +1,20 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import GroupSerializer, ContactSerializer
-from SmsSender2.utils import normalize_phone_number
-from contacts.models import Contact
-from organizations.models import Group
 from .utils import check_user_organization
-from text_messages.models import Message
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
+from .serializers import GroupSerializer
+from django.db.models import Q  # اضافه کردن این خط
+from django.contrib.auth import get_user_model
 from rest_framework import status
-from django.views import View
-from django.contrib.auth import authenticate, login
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import ContactSerializer
+from SmsSender2.utils import normalize_phone_number
+from .models import Contact, Group
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.shortcuts import redirect, get_object_or_404
+from django.views import View
 from .models import Contact
-from .serializers import ContactSerializer, GroupSerializer
-from organizations.models import Group
-from SmsSender2.utils import normalize_phone_number
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Contact
-from .serializers import ContactSerializer, GroupSerializer
-from organizations.models import Group
-from SmsSender2.utils import normalize_phone_number
+User = get_user_model()
 
 
 class GroupListApiView(APIView):
@@ -47,22 +32,6 @@ class GroupListApiView(APIView):
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
 
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Contact
-from .serializers import ContactSerializer
-from organizations.models import Group
-from SmsSender2.utils import normalize_phone_number
-
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Contact
-from .serializers import ContactSerializer
-from organizations.models import Group
-from SmsSender2.utils import normalize_phone_number
 
 class ContactCreateApiView(APIView):
     def post(self, request):
@@ -116,7 +85,8 @@ class ContactCreateApiView(APIView):
                 if serializer.is_valid():
                     contact = serializer.save()
                     contact.groups.set(group_data)  # گروه‌ها را به‌روزرسانی می‌کنیم
-                    created_contacts.append({'contact_info': serializer.data, 'message': 'مخاطب با موفقیت به‌روزرسانی شد.'})
+                    created_contacts.append(
+                        {'contact_info': serializer.data, 'message': 'مخاطب با موفقیت به‌روزرسانی شد.'})
                 else:
                     # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
                     first_error_message = next(iter(serializer.errors.values()))[0]
@@ -131,9 +101,141 @@ class ContactCreateApiView(APIView):
             'data': created_contacts
         }, status=status.HTTP_200_OK)
 
-class ContactsView(View):
+
+class ContactCreateView(View):
     def get(self, request):
         if not request.user.is_authenticated:
-            return redirect('login')
+            return redirect('login')  # کاربر باید وارد شود
 
-        return render(request, 'contacts/contacts_list.html')
+        # گرفتن گروه‌ها برای انتخاب از جانب کاربر
+        groups = Group.objects.filter(organization=request.user.organization)
+
+        return render(request, 'contacts/contact_create.html', {'groups': groups})
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')  # کاربر باید وارد شود
+
+        # دریافت داده‌ها از فرم
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        gender = request.POST.get('gender')
+        selected_group_ids = request.POST.getlist('selected_groups')  # دریافت گروه‌های انتخابی
+
+        # بررسی اعتبار داده‌ها (در صورت نیاز می‌توانید بررسی کنید)
+        if not first_name or not last_name or not phone_number or not gender:
+            return render(request, 'contacts/contact_create.html', {'message': 'تمامی فیلدها باید پر شوند.'})
+
+        # ایجاد مخاطب جدید
+        contact = Contact.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
+            gender=gender,
+            created_by=request.user,
+            organization=request.user.organization
+        )
+
+        # اضافه کردن گروه‌ها به مخاطب
+        contact.groups.set(Group.objects.filter(id__in=selected_group_ids, organization=request.user.organization))
+        contact.save()
+
+        # ارسال پیام موفقیت
+        message = 'مخاطب با موفقیت ایجاد شد.'
+        return render(request, 'contacts/contact_create.html',
+                      {'message': message, 'groups': Group.objects.filter(organization=request.user.organization)})
+
+
+from django.shortcuts import redirect, render
+from django.views import View
+from django.db.models import Q  # برای جستجو
+from .models import Contact
+
+from django.shortcuts import redirect, render
+from django.views import View
+from django.db.models import Q  # برای جستجو
+from .models import Contact
+
+
+class ContactListView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')  # کاربر باید وارد شود
+
+        # گرفتن نام جستجو از پارامترهای GET
+        search_query = request.GET.get('search', '')
+
+        # گرفتن مخاطبین مرتبط با سازمان کاربر و اعمال فیلتر بر اساس جستجو
+        contacts = Contact.objects.filter(organization=request.user.organization)
+
+        if search_query:
+            # تقسیم رشته جستجو به نام و نام خانوادگی
+            search_terms = search_query.split()  # تقسیم بر اساس فضا
+
+            # ساخت فیلتر برای جستجو
+            filters = Q()
+            for term in search_terms:
+                filters |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(
+                    phone_number__icontains=term)
+
+            contacts = contacts.filter(filters)
+
+        return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query})
+
+
+class ContactEditView(View):
+    def get(self, request, contact_id):
+        if not request.user.is_authenticated:
+            return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه ورود هدایت می‌شود
+
+        # پیدا کردن مخاطب با شناسه مشخص
+        contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
+        groups = Group.objects.filter(organization=request.user.organization)  # دریافت گروه‌ها برای انتخاب
+        selected_groups = contact.groups.all()  # گروه‌های انتخاب شده
+
+        return render(request, 'contacts/edit_contact.html', {
+            'contact': contact,
+            'groups': groups,
+            'selected_groups': selected_groups  # ارسال گروه‌های انتخابی
+        })
+
+    def post(self, request, contact_id):
+        if not request.user.is_authenticated:
+            return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه ورود هدایت می‌شود
+
+        contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
+
+        # دریافت داده‌های فرم
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        gender = request.POST.get('gender')
+        selected_group_ids = request.POST.getlist('selected_groups')  # دریافت گروه‌های انتخابی
+
+        # به‌روزرسانی مخاطب
+        contact.first_name = first_name
+        contact.last_name = last_name
+        contact.phone_number = phone_number
+        contact.gender = gender
+        contact.save()
+
+        # به‌روزرسانی گروه‌ها
+        contact.groups.set(Group.objects.filter(id__in=selected_group_ids, organization=request.user.organization))
+
+        return redirect('contact_list')  # هدایت به لیست مخاطبین بعد از ویرایش
+
+
+class ContactDeleteView(View):
+    def get(self, request, contact_id):
+        if not request.user.is_authenticated:
+            return redirect('login')  # اگر کاربر وارد نشده باشد به صفحه ورود هدایت شود
+
+        # پیدا کردن مخاطب بر اساس شناسه
+        contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
+
+        # حذف مخاطب
+        contact.delete()
+
+        # بعد از حذف به لیست مخاطبین هدایت می‌کند
+        return redirect('contact_list')  # نام URL لیست مخاطبین

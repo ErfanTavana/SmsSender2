@@ -32,12 +32,6 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                {#                    <li class="nav-item">#}
-                {#                        <a class="nav-link active" aria-current="page" href="#">صفحه اصلی</a>#}
-                {#                    </li>#}
-                {#                    <li class="nav-item">#}
-                {#                        <a class="nav-link" href="#">لینک</a>#}
-                {#                    </li>#}
                 <li class="nav-item dropdown">
                     <a
                             class="nav-link dropdown-toggle"
@@ -52,8 +46,6 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'message_list' %}">لیست پیام ها</a></li>
                         <li><a class="dropdown-item" href="{% url 'messages_create' %}">ایجاد پیام جدید</a></li>
-                        {#                            <li><hr class="dropdown-divider" /></li>#}
-                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -70,11 +62,8 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'user_list' %}">لیست کاربر ها</a></li>
                         <li><a class="dropdown-item" href="{% url 'user_create' %}">ایجاد کاربر جدید</a></li>
-                        {#                            <li><hr class="dropdown-divider" /></li>#}
-                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
                 </li>
-
                 <li class="nav-item dropdown">
                     <a
                             class="nav-link dropdown-toggle"
@@ -89,11 +78,8 @@
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'group_list' %}">لیست گروه ها</a></li>
                         <li><a class="dropdown-item" href="{% url 'create_group' %}">ایجاد گروه جدید</a></li>
-                        {#                            <li><hr class="dropdown-divider" /></li>#}
-                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
                 </li>
-
                 <li class="nav-item dropdown">
                     <a
                             class="nav-link dropdown-toggle"
@@ -107,21 +93,34 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a>
-                        </li>
-                        {#                            <li><hr class="dropdown-divider" /></li>#}
-                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
+                        <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a></li>
                     </ul>
                 </li>
-
-
+                <li class="nav-item dropdown">
+                    <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="navbarDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                    >
+                        مخاطبین
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'contact_list' %}">لیست مخاطب ها</a></li>
+                        <li><a class="dropdown-item" href="{% url 'contact_create' %}">ایجاد مخاطب جدید</a></li>
+                    </ul>
+                </li>
             </ul>
-            <form class="d-flex">
+            <form class="d-flex" method="GET" action="{% url 'contact_list' %}">
                 <input
-                        class="form-control me-2"
-                        type="search"
-                        placeholder="جستجو"
-                        aria-label="Search"
+                    class="form-control me-2"
+                    type="search"
+                    name="search"
+                    placeholder="جستجو"
+                    aria-label="Search"
+                    value="{{ search_query }}"
                 />
                 <button class="btn btn-outline-success" type="submit">جستجو</button>
             </form>

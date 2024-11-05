@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لیست مخاطبین{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+        <h2>لیست مخاطبین</h2>
+        <table class="table" style="border-collapse: collapse; width: 100%;">
+            <thead>
+            <tr style="background-color: #3e552b; color: white;">
+                <th>شماره</th> <!-- ستون شماره -->
+                <th>نام</th>
+                <th>نام خانوادگی</th>
+                <th>شماره تلفن</th>
+                <th>جنسیت</th>
+                <th>ایجاد کننده</th>
+                <th>تاریخ ایجاد</th>
+                <th>عملیات</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for contact in contacts %}
+                <tr style="background-color: #ccd4af;">
+                    <td>{{ forloop.counter }}</td> <!-- نمایش شماره ترتیب -->
+                    <td>{{ contact.first_name }}</td>
+                    <td>{{ contact.last_name }}</td>
+                    <td>{{ contact.phone_number }}</td>
+                    <td>{{ contact.gender }}</td>
+                    <td>{{ contact.created_by.first_name }} {{ contact.created_by.last_name }}</td>
+                    <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <!-- دکمه ویرایش -->
+                        <a href="{% url 'edit_contact' contact.id %}" class="btn btn-sm btn-warning">ویرایش</a>
+
+                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ contact.id }})">حذف</button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">مخاطبی یافت نشد.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function confirmDelete(id) {
+            if (confirm("آیا مطمئن هستید که می‌خواهید این مخاطب را حذف کنید؟")) {
+                window.location.href = "{% url 'delete_contact' 0 %}".replace(0, id);
+            }
+        }
+    </script>
+{% endblock %}

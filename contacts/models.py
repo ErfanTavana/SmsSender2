@@ -1,7 +1,10 @@
 from django.db import models
-from organizations.models import Organization,Group
+from organizations.models import Organization, Group
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+
 User = get_user_model()
+
 
 class Contact(models.Model):
     """
@@ -18,7 +21,9 @@ class Contact(models.Model):
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, verbose_name="جنسیت")
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="کاربر ایجاد کننده")
     groups = models.ManyToManyField(Group, verbose_name="گروه‌ها", related_name="contacts")
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name="سازمان", related_name="contacts")
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, verbose_name="سازمان",
+                                     related_name="contacts")
+    created_at = models.DateTimeField(default=timezone.now, verbose_name="تاریخ ایجاد")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

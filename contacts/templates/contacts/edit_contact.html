@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ویرایش مخاطب{% endblock %}
+
+{% block content %}
+    <!-- نمایش پیام موفقیت -->
+    {% if message %}
+        <div class="container mt-3">
+            <div class="alert alert-success" role="alert" style="color: green;">
+                مخاطب با موفقیت ویرایش شد.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- فرم ویرایش مخاطب -->
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">فرم ویرایش مخاطب</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">نام</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ contact.first_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">نام خانوادگی</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ contact.last_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">شماره تلفن همراه</label>
+                        <input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ contact.phone_number }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">جنسیت</label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="مرد" {% if contact.gender == 'مرد' %}selected{% endif %}>مرد</option>
+                            <option value="زن" {% if contact.gender == 'زن' %}selected{% endif %}>زن</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selected_groups" class="form-label">گروه‌های مرتبط (اختیاری)</label>
+                        <select id="selected_groups" name="selected_groups" class="form-select" multiple>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}" {% if group in selected_groups %}selected{% endif %}>{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">می‌توانید چند گروه را با نگه‌داشتن کلید Ctrl انتخاب کنید.</small>
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary">به‌روزرسانی مخاطب</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
