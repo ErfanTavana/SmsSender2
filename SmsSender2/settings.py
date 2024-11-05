@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'organizations',
     'contacts',
     'text_messages',
-    # 'sender',
+    'sender',
 ]
 
 MIDDLEWARE = [

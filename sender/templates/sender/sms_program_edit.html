@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ویرایش برنامه پیامکی{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+        <h2>ویرایش برنامه پیامکی - {{ sms_program.name }}</h2>
+
+        <form method="post" action="{% url 'sms_program_edit' sms_program.id %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="sms_program_name">نام برنامه پیامکی:</label>
+                <input type="text" id="sms_program_name" name="sms_program_name" class="form-control" value="{{ sms_program.name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="selected_message">انتخاب پیام مرتبط:</label>
+                <select id="selected_message" name="selected_message" class="form-control" required>
+                    {% for message in messages %}
+                        <option value="{{ message.id }}" {% if message.id == sms_program.message.id %}selected{% endif %}>
+                            {{ message.content|truncatewords:10 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selected_groups">گروه‌های هدف:</label>
+                <select id="selected_groups" name="selected_groups" class="form-control" multiple required>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}" {% if group in sms_program.groups.all %}selected{% endif %}>
+                            {{ group.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="selected_users">کاربران هدف:</label>
+                <select id="selected_users" name="selected_users" class="form-control" multiple required>
+                    {% for user in users %}
+                        <option value="{{ user.id }}" {% if user in sms_program.users.all %}selected{% endif %}>
+                            {{ user.first_name }} {{ user.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {% if error %}
+                <div class="alert alert-danger mt-3">{{ error }}</div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary mt-3">ذخیره تغییرات</button>
+            <a href="{% url 'sms_program_list' %}" class="btn btn-secondary mt-3">بازگشت</a>
+        </form>
+    </div>
+{% endblock %}
