@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لیست گروه‌ها{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+        <h2>لیست گروه‌ها</h2>
+        <table class="table" style="border-collapse: collapse; width: 100%;">
+            <thead>
+            <tr style="background-color: #3e552b; color: white;">
+                <th>شماره</th> <!-- ستون شماره -->
+                <th>نام گروه</th>
+                <th>سازمان</th>
+                <th>توضیحات</th>
+                <th>تاریخ ایجاد</th>
+                <th>عملیات</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for group in data.groups %}
+                <tr style="background-color: #ccd4af;">
+                    <td>{{ forloop.counter }}</td> <!-- نمایش شماره ترتیب -->
+                    <td>{{ group.name }}</td>
+                    <td>{{ group.organization.name }}</td>
+                    <td>{{ group.description|truncatewords:10 }}</td>
+                    <td>{{ group.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <!-- دکمه ویرایش -->
+                        <a href="{% url 'group_edit' group.id %}" class="btn btn-sm btn-warning">ویرایش</a>
+                        <!-- دکمه حذف -->
+                        <button class="btn btn-sm btn-danger" onclick="confirmDelete('{{ group.id }}')">حذف</button>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">هیچ گروهی یافت نشد</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function confirmDelete(id) {
+            if (confirm("آیا مطمئن هستید که می‌خواهید این گروه را حذف کنید؟")) {
+                window.location.href = "{% url 'group_delete' 0 %}".replace(0, id);
+            }
+        }
+    </script>
+{% endblock %}

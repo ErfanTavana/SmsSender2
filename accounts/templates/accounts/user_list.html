@@ -9,14 +9,16 @@
 
     <!-- نمایش پیام خطا در صورت وجود -->
     {% if message %}
-    <div class="alert alert-danger mt-3">
-        {{ message }}
-    </div>
+        <div class="container mt-3">
+            <div class="alert {% if error %}alert-danger{% else %}alert-success{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        </div>
     {% endif %}
 
-    <table class="table table-bordered mt-3">
+    <table class="table mt-3" style="border-collapse: collapse; width: 100%;">
         <thead>
-            <tr>
+            <tr style="background-color: #3e552b; color: white;">
                 <th>نام</th>
                 <th>نام خانوادگی</th>
                 <th>شماره موبایل</th>
@@ -27,25 +29,31 @@
         </thead>
         <tbody>
             {% for user in data.users %}
-            <tr>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
-                <td>{{ user.phone_number }}</td>
-                <td>{{ user.gender }}</td>
-                <td>
-                    {% for group in user.groups.all %}
-                        {{ group.name }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </td>
-                <td>
-                    <a href="{% url 'user_edit' user.id %}" class="btn btn-warning btn-sm">ویرایش</a>
-                    <a href="{% url 'user_delete' user.id %}" class="btn btn-danger btn-sm" onclick="return confirm('آیا مطمئن هستید؟')">حذف</a>
-                </td>
-            </tr>
+                <tr style="background-color: #ccd4af;">
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.phone_number }}</td>
+                    <td>{{ user.gender }}</td>
+                    <td>
+                        {% for group in user.groups.all %}
+                            {{ group.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <a href="{% url 'user_edit' user.id %}" class="btn btn-sm btn-warning">ویرایش</a>
+                        <form method="post" action="{% url 'user_delete' user.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟');">
+                                حذف
+                            </button>
+                        </form>
+                    </td>
+                </tr>
             {% empty %}
-            <tr>
-                <td colspan="6" class="text-center">هیچ کاربری یافت نشد</td>
-            </tr>
+                <tr>
+                    <td colspan="6" class="text-center">هیچ کاربری یافت نشد</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

@@ -51,7 +51,7 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'message_list' %}">لیست پیام ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'messages_create' %}">ایچاد پیام جدید</a></li>
+                        <li><a class="dropdown-item" href="{% url 'messages_create' %}">ایجاد پیام جدید</a></li>
                         {#                            <li><hr class="dropdown-divider" /></li>#}
                         {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
@@ -69,12 +69,32 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'user_list' %}">لیست کاربر ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'user_create' %}">ایچاد کاربر جدید</a></li>
+                        <li><a class="dropdown-item" href="{% url 'user_create' %}">ایجاد کاربر جدید</a></li>
                         {#                            <li><hr class="dropdown-divider" /></li>#}
                         {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
                     </ul>
                 </li>
-                
+
+                <li class="nav-item dropdown">
+                    <a
+                            class="nav-link dropdown-toggle"
+                            href="#"
+                            id="navbarDropdown"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                    >
+                        گروه ها
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'group_list' %}">لیست گروه ها</a></li>
+                        <li><a class="dropdown-item" href="{% url 'create_group' %}">ایجاد گروه جدید</a></li>
+                        {#                            <li><hr class="dropdown-divider" /></li>#}
+                        {#                            <li><a class="dropdown-item" href="#">گروه دوم ساب منو</a></li>#}
+                    </ul>
+                </li>
+
+
             </ul>
             <form class="d-flex">
                 <input

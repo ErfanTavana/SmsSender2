@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ایجاد گروه جدید{% endblock %}
+
+{% block content %}
+    <!-- نمایش پیام موفقیت در صورت وجود -->
+    {% if message %}
+        <div class="container mt-3">
+            <div class="alert {% if error %}alert-danger{% else %}alert-success{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        </div>
+    {% endif %}
+
+
+    <!-- Form Start -->
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">فرم ایجاد گروه جدید</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">نام گروه</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">توضیحات درباره گروه</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary">ثبت گروه</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Form End -->
+{% endblock %}
