@@ -124,15 +124,6 @@ class SmsProgramListView(View):
         })
 
 
-# views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from .models import SmsProgram
-from text_messages.models import Message
-from accounts.models import User
-from organizations.models import Group
-
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .models import SmsProgram, UserTask

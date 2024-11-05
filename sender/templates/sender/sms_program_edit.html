@@ -19,7 +19,7 @@
                 <select id="selected_message" name="selected_message" class="form-control" required>
                     {% for message in messages %}
                         <option value="{{ message.id }}" {% if message.id == sms_program.message.id %}selected{% endif %}>
-                            {{ message.content|truncatewords:10 }}
+                            {{ message.text|truncatewords:10 }}
                         </option>
                     {% endfor %}
                 </select>
