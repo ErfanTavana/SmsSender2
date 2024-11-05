@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ایجاد برنامه پیامکی{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>ایجاد برنامه پیامکی</h2>
+
+    <!-- نمایش پیام موفقیت یا خطا -->
+    {% if message %}
+    <div class="alert {% if error %}alert-danger{% else %}alert-success{% endif %}">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    <!-- فرم ایجاد برنامه پیامکی -->
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="sms_program_name" class="form-label">نام برنامه پیامکی</label>
+            <input type="text" class="form-control" id="sms_program_name" name="sms_program_name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="selected_message" class="form-label">انتخاب پیام مورد نظر</label>
+            <select id="selected_message" name="selected_message" class="form-select">
+                {% for message in messages %}
+                    <option value="{{ message.id }}">{{ message.text|truncatewords:10 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="selected_groups" class="form-label">انتخاب گروه‌های مورد نظر</label>
+            <select id="selected_groups" name="selected_groups" class="form-select" multiple>
+                {% for group in groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="selected_users" class="form-label">انتخاب کاربران مورد نظر</label>
+            <select id="selected_users" name="selected_users" class="form-select" multiple>
+                {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">ایجاد برنامه</button>
+    </form>
+</div>
+{% endblock %}
