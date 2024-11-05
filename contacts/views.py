@@ -16,9 +16,23 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
 
-class ContactApiView(APIView):
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Contact
+from .serializers import ContactSerializer, GroupSerializer
+from organizations.models import Group
+from SmsSender2.utils import normalize_phone_number
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Contact
+from .serializers import ContactSerializer, GroupSerializer
+from organizations.models import Group
+from SmsSender2.utils import normalize_phone_number
+class GroupListApiView(APIView):
     def get(self, request):
-        # استفاده از تابع کمکی
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
             return error_response
@@ -31,7 +45,7 @@ class ContactApiView(APIView):
 
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
-
+class ContactCreateApiView(APIView):
     def post(self, request):
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
@@ -75,14 +89,14 @@ class ContactApiView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
         # دریافت گروه انتخابی از درخواست
-        selected_groups = serializer.validated_data.get('groups', [])
+        selected_group_id = request.data.get('groups')  # Only a single group ID as a string
         last_message = None
 
-        if selected_groups:
-            selected_group = selected_groups[0]
+        if selected_group_id:
+            # پیدا کردن آخرین پیام برای گروه انتخابی
             last_message = Message.objects.filter(
                 organization=organization_user,
-                group_id=selected_group.id,
+                groups__id=selected_group_id,  # Use 'id' to filter by the group ID
                 message_type='فردی',
             ).order_by('-created_at').first()
 
@@ -93,6 +107,7 @@ class ContactApiView(APIView):
                 'last_message': last_message.text if last_message else None
             }
         }, status=status.HTTP_200_OK)
+
 
 class ContactsView(View):
     def get(self, request):

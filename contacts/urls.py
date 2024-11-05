@@ -1,8 +1,10 @@
 from django.urls import path
-from .views import ContactApiView, ContactsView
+from .views import ContactCreateApiView, ContactsView, GroupListApiView
 
 urlpatterns = [
-    path('create_contacts/', ContactApiView.as_view(), name='create-contacts'),  # ایجاد مخاطبین جدید
-    path('contacts_list/', ContactsView.as_view(), name='contacts_list'),  # ایجاد مخاطبین جدید
+    path('api/group_list/', GroupListApiView.as_view(), name='group_list'),
+
+    path('api/create_contacts/', ContactCreateApiView.as_view(), name='create_contacts'),
+    path('contacts_list/', ContactsView.as_view(), name='contacts_list'),
 
 ]

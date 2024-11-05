@@ -22,12 +22,12 @@
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="text" class="form-label">متن پیام</label>
-                        <textarea class="form-control" id="text" name="text" rows="3"></textarea>
+                        <textarea class="form-control" id="text" name="text" rows="3" required></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="message_type" class="form-label">نوع ارسال پیام</label>
-                        <select class="form-select" id="message_type" name="message_type">
+                        <select class="form-select" id="message_type" name="message_type" required>
                             <option value="همگانی">همگانی</option>
                             <option value="فردی">فردی</option>
                         </select>
@@ -36,6 +36,16 @@
                     <div class="mb-3 form-check">
                         <input type="checkbox" class="form-check-input" id="is_approved" name="is_approved"/>
                         <label class="form-check-label" for="is_approved">آیا پیام تایید شده است؟</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selected_groups" class="form-label">گروه‌های مرتبط (اختیاری)</label>
+                        <select id="selected_groups" name="selected_groups" class="form-select" multiple>
+                            {% for group in groups %}
+                                <option value="{{ group.id }}">{{ group.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">می‌توانید چند گروه را با نگه‌داشتن کلید Ctrl انتخاب کنید.</small>
                     </div>
 
                     <div class="d-flex justify-content-center">
