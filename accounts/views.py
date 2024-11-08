@@ -44,7 +44,7 @@ class LoginView(View):
         user = authenticate(phone_number=phone_number, password=password)
         if user:
             login(request, user)
-            return redirect('contacts_list')
+            return redirect('home')
         else:
             return render(request, 'accounts/login.html', {'message': 'نام کاربری یا رمز عبور نادرست است.', 'data': {}})
 
