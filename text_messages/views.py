@@ -1,15 +1,10 @@
-from django.template.context_processors import request
 from django.views import View
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
 from .models import Message
-from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
 from organizations.models import Group
+from .mixins import MessagesAccessRequiredMixin
 
-
-class MessageListView(View):
+class MessageListView(MessagesAccessRequiredMixin,View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -17,7 +12,7 @@ class MessageListView(View):
         return render(request, 'text_messages/message_list.html', {'messages': '', 'data': {'messages': messages}})
 
 
-class MessagesCreateView(View):
+class MessagesCreateView(MessagesAccessRequiredMixin,View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -51,7 +46,7 @@ class MessagesCreateView(View):
         return redirect('message_list')
 
 
-class EditMessageView(View):
+class EditMessageView(MessagesAccessRequiredMixin,View):
     def get(self, request, message_id):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -87,7 +82,7 @@ class EditMessageView(View):
 
         return redirect('message_list')
 
-class DeleteMessageView(View):
+class DeleteMessageView(MessagesAccessRequiredMixin,View):
     def get(self, request, message_id):
         if not request.user.is_authenticated:
             return redirect('login')

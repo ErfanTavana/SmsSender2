@@ -1,7 +1,6 @@
 from .utils import check_user_organization
 
 from .serializers import GroupSerializer
-from django.db.models import Q  # اضافه کردن این خط
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
@@ -9,10 +8,12 @@ from rest_framework.views import APIView
 from .serializers import ContactSerializer
 from SmsSender2.utils import normalize_phone_number
 from .models import Contact, Group
-from django.shortcuts import render, redirect
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import  get_object_or_404
+from django.shortcuts import redirect, render
 from django.views import View
+from django.db.models import Q  # برای جستجو
 from .models import Contact
+from .mixins import ContactAccessRequiredMixin
 
 User = get_user_model()
 
@@ -22,7 +23,12 @@ class GroupListApiView(APIView):
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
             return error_response
-
+        # بررسی دسترسی افزودن مخاطب
+        if not user.can_add_contacts:
+            return Response({
+                'message': 'شما اجازه‌ی افزودن مخاطب را ندارید.',
+                'data': {}
+            }, status=status.HTTP_400_BAD_REQUEST)
         groups = user.groups.filter(organization=organization_user)
 
         if not groups:
@@ -32,6 +38,7 @@ class GroupListApiView(APIView):
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
 
+
 class ContactCreateApiView(APIView):
     def post(self, request):
         # بررسی دسترسی کاربر و سازمان
@@ -39,6 +46,11 @@ class ContactCreateApiView(APIView):
         if error_response:
             return error_response
         data = request.data
+        if not user.can_add_contacts:
+            return Response({
+                'message': 'شما اجازه‌ی افزودن مخاطب را ندارید.',
+                'data': {}
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if not data:
             return Response({
@@ -96,8 +108,7 @@ class ContactCreateApiView(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-class ContactCreateView(View):
+class ContactCreateView(ContactAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')  # کاربر باید وارد شود
@@ -142,18 +153,7 @@ class ContactCreateView(View):
                       {'message': message, 'groups': Group.objects.filter(organization=request.user.organization)})
 
 
-from django.shortcuts import redirect, render
-from django.views import View
-from django.db.models import Q  # برای جستجو
-from .models import Contact
-
-from django.shortcuts import redirect, render
-from django.views import View
-from django.db.models import Q  # برای جستجو
-from .models import Contact
-
-
-class ContactListView(View):
+class ContactListView(ContactAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')  # کاربر باید وارد شود
@@ -179,7 +179,7 @@ class ContactListView(View):
         return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query})
 
 
-class ContactEditView(View):
+class ContactEditView(ContactAccessRequiredMixin, View):
     def get(self, request, contact_id):
         if not request.user.is_authenticated:
             return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه ورود هدایت می‌شود
@@ -221,7 +221,7 @@ class ContactEditView(View):
         return redirect('contact_list')  # هدایت به لیست مخاطبین بعد از ویرایش
 
 
-class ContactDeleteView(View):
+class ContactDeleteView(ContactAccessRequiredMixin, View):
     def get(self, request, contact_id):
         if not request.user.is_authenticated:
             return redirect('login')  # اگر کاربر وارد نشده باشد به صفحه ورود هدایت شود

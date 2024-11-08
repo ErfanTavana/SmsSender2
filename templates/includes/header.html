@@ -2,142 +2,90 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.rtl.min.css' %}"/>
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
-
     <title>{% block title %}عنوان صفحه{% endblock %}</title>
 </head>
 <body>
-<!-- Header Start -->
 <nav class="navbar navbar-expand-lg navbar-light header-list-sys">
     <div class="container-fluid">
         <span class="fw-bold text-center">{% block page_name %}{% endblock %}</span>
-        <button
-                class="navbar-toggler"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-        >
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                
                 <li class="nav-item">
-                    <a
-                            class="nav-link"
-                            href="{% url 'home' %}"
-                            role="button"
-                            aria-expanded="false"
-                    >
-                        آمار
-                    </a>
+                    <a class="nav-link" href="{% url 'home' %}" role="button" aria-expanded="false">آمار</a>
                 </li>
 
+                {% if request.user.can_access_messages %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">پیام</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'message_list' %}">لیست پیام ها</a></li>
+                            <li><a class="dropdown-item" href="{% url 'messages_create' %}">ایجاد پیام جدید</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
 
-                <li class="nav-item dropdown">
-                    <a
-                            class="nav-link dropdown-toggle"
-                            href="#"
-                            id="navbarDropdown"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                    >
-                        پیام
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'message_list' %}">لیست پیام ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'messages_create' %}">ایجاد پیام جدید</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a
-                            class="nav-link dropdown-toggle"
-                            href="#"
-                            id="navbarDropdown"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                    >
-                        کاربرها
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'user_list' %}">لیست کاربر ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'user_create' %}">ایجاد کاربر جدید</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a
-                            class="nav-link dropdown-toggle"
-                            href="#"
-                            id="navbarDropdown"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                    >
-                        گروه ها
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'group_list' %}">لیست گروه ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'create_group' %}">ایجاد گروه جدید</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a
-                            class="nav-link dropdown-toggle"
-                            href="#"
-                            id="navbarDropdown"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                    >
-                        برنامه پیامکی
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a>
-                        </li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a
-                            class="nav-link dropdown-toggle"
-                            href="#"
-                            id="navbarDropdown"
-                            role="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                    >
-                        مخاطبین
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item" href="{% url 'contact_list' %}">لیست مخاطب ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'contact_create' %}">ایجاد مخاطب جدید</a></li>
-                    </ul>
-                </li>
+                {% if request.user.can_access_users %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">کاربرها</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'user_list' %}">لیست کاربر ها</a></li>
+                            <li><a class="dropdown-item" href="{% url 'user_create' %}">ایجاد کاربر جدید</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if request.user.can_access_groups %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">گروه ها</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'group_list' %}">لیست گروه ها</a></li>
+                            <li><a class="dropdown-item" href="{% url 'create_group' %}">ایجاد گروه جدید</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if request.user.can_access_sms_program %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">برنامه پیامکی</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a></li>
+                            <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if request.user.can_access_contacts %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">مخاطبین</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="{% url 'contact_list' %}">لیست مخاطب ها</a></li>
+                            <li><a class="dropdown-item" href="{% url 'contact_create' %}">ایجاد مخاطب جدید</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
             </ul>
+
             <form class="d-flex" method="GET" action="{% url 'contact_list' %}">
-                <input
-                        class="form-control me-2"
-                        type="search"
-                        name="search"
-                        placeholder="جستجو"
-                        aria-label="Search"
-                        value="{{ search_query }}"
-                />
+                <input class="form-control me-2" type="search" name="search" placeholder="جستجو"
+                       aria-label="Search" value="{{ search_query }}"/>
                 <button class="btn btn-outline-success" type="submit">جستجو</button>
             </form>
         </div>
     </div>
 </nav>
-<!-- Header End -->
+</body>
+</html>

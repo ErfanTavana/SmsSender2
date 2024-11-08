@@ -4,9 +4,14 @@ from .models import Group, Organization
 from django.shortcuts import render, redirect
 from .models import Group, Organization
 from django.views import View
+from .mixins import GroupAccessRequiredMixin
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+from .models import Group
 
 
-class CreateGroup(View):
+class CreateGroup(GroupAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -28,12 +33,7 @@ class CreateGroup(View):
         return redirect('group_list')
 
 
-from django.shortcuts import render, redirect
-from django.views import View
-from .models import Group
-
-
-class GroupListView(View):
+class GroupListView(GroupAccessRequiredMixin, View):
     def get(self, request):
         # بررسی اینکه کاربر لاگین کرده است
         if not request.user.is_authenticated:
@@ -46,12 +46,7 @@ class GroupListView(View):
         return render(request, 'organization/group_list.html', {'data': {'groups': groups}})
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from .models import Group
-
-
-class EditGroupView(View):
+class EditGroupView(GroupAccessRequiredMixin, View):
     def get(self, request, group_id):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -87,12 +82,7 @@ class EditGroupView(View):
         return redirect('group_list')
 
 
-from django.shortcuts import redirect, get_object_or_404
-from django.views import View
-from .models import Group
-
-
-class DeleteGroupView(View):
+class DeleteGroupView(GroupAccessRequiredMixin, View):
     def get(self, request, group_id):
         if not request.user.is_authenticated:
             return redirect('login')

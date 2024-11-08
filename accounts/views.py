@@ -11,6 +11,7 @@ from django.views import View
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
+from .mixins import UserAccessRequiredMixin
 
 User = get_user_model()
 from django.contrib.auth.hashers import make_password
@@ -57,7 +58,7 @@ from organizations.models import Group  # فرض کنید مدل Group اینج�
 User = get_user_model()
 
 
-class UserCreateView(View):
+class UserCreateView(UserAccessRequiredMixin, View):
     def get(self, request):
         # فیلتر کردن گروه‌ها بر اساس سازمان کاربر
         groups = Group.objects.filter(organization_id=request.user.organization.id)
@@ -128,7 +129,7 @@ class UserCreateView(View):
         return redirect('user_list')
 
 
-class UserListView(View):
+class UserListView(UserAccessRequiredMixin, View):
     def get(self, request):
         users = User.objects.filter(organization_id=request.user.organization.id)
 
@@ -152,7 +153,7 @@ class UserListView(View):
         return render(request, 'accounts/user_list.html', {'message': '', 'data': {'users': user_data}})
 
 
-class UserEditView(View):
+class UserEditView(UserAccessRequiredMixin, View):
     def get(self, request, user_id):
         # یافتن کاربر با شناسه مشخص
         user = get_object_or_404(User, id=user_id)
@@ -212,7 +213,8 @@ class UserEditView(View):
         # انتقال به صفحه‌ی لیست کاربران یا نمایش پیغام موفقیت
         return redirect('user_list')
 
-class UserDeleteView(View):
+
+class UserDeleteView(UserAccessRequiredMixin, View):
     def get(self, request, user_id):
         # جلوگیری از حذف خود کاربر
         users = User.objects.filter(

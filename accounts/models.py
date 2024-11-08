@@ -25,6 +25,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True and is_superuser=True.')
 
         return self.create_user(phone_number, password, **extra_fields)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model that uses phone number for authentication and includes various user types.
@@ -61,6 +63,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     can_send_bulk_sms = models.BooleanField("send bulk SMS", default=False,
                                             help_text="Designates whether this user can send bulk SMS messages.")
 
+    # New access control field for adding contacts through the app
+    can_add_contacts = models.BooleanField(
+        "add contacts through app",
+        default=False,
+        help_text="Designates whether this user can add contacts through the app."
+    )
     USERNAME_FIELD = 'phone_number'  # Set phone_number as the unique identifier for authentication
     objects = CustomUserManager()  # Assign the custom user manager
 

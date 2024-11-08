@@ -24,7 +24,6 @@
                 <th>شماره موبایل</th>
                 <th>جنسیت</th>
                 <th>گروه‌ها</th>
-                <th>دسترسی‌ها</th>
                 <th>عملیات</th>
             </tr>
         </thead>
@@ -39,15 +38,6 @@
                         {% for group in user.groups %}
                             {{ group.name }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
-                    </td>
-                    <td>
-                        <ul style="padding-left: 1em;">
-                            {% if user.can_access_users %}<li>دسترسی به کاربرها</li>{% endif %}
-                            {% if user.can_access_groups %}<li>دسترسی به گروه‌ها</li>{% endif %}
-                            {% if user.can_access_sms_program %}<li>دسترسی به برنامه پیامکی</li>{% endif %}
-                            {% if user.can_access_contacts %}<li>دسترسی به مخاطبین</li>{% endif %}
-                            {% if user.can_send_bulk_sms %}<li>ارسال پیامک همگانی</li>{% endif %}
-                        </ul>
                     </td>
                     <td>
                         <a href="{% url 'user_edit' user.id %}" class="btn btn-sm btn-warning">ویرایش</a>

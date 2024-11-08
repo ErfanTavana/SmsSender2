@@ -1,27 +1,15 @@
-# views.py
-from django.shortcuts import render, redirect
-from django.views import View
-from .models import Message, Group, User
-
-from django.shortcuts import render, redirect
-from django.views import View
-from .models import SmsProgram
-from text_messages.models import Message
-from accounts.models import User
-from organizations.models import Group
-
 import random
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .models import SmsProgram, UserTask
+from contacts.models import Contact
 from text_messages.models import Message
 from accounts.models import User
 from organizations.models import Group
-from contacts.models import Contact  # فرض بر این است که Contact مدل مخاطب است
-from django.shortcuts import render, get_object_or_404, redirect
+from .mixins import SMSProgramAccessRequiredMixin
 
 
-class CreateSmsProgramView(View):
+class CreateSmsProgramView(SMSProgramAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -110,8 +98,7 @@ class CreateSmsProgramView(View):
         return redirect('sms_program_list')
 
 
-
-class SmsProgramListView(View):
+class SmsProgramListView(SMSProgramAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -124,15 +111,7 @@ class SmsProgramListView(View):
         })
 
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from .models import SmsProgram, UserTask
-from contacts.models import Contact
-from text_messages.models import Message
-from accounts.models import User
-from organizations.models import Group
-
-class SmsProgramEditView(View):
+class SmsProgramEditView(SMSProgramAccessRequiredMixin, View):
     def get(self, request, pk):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -188,19 +167,20 @@ class SmsProgramEditView(View):
 
         # حذف مخاطبینی که دیگر در گروه‌های برنامه نیستند
         for task in tasks:
-            task.contacts.remove(*[contact for contact in task.contacts.all() if contact.groups.first().id not in selected_group_ids])
+            task.contacts.remove(
+                *[contact for contact in task.contacts.all() if contact.groups.first().id not in selected_group_ids])
 
         # تقسیم دوباره مخاطبین بین وظایف
         for idx, contact in enumerate(all_contacts):
             assigned_user = sms_program.users.all()[idx % sms_program.users.count()]
-            task, created = UserTask.objects.get_or_create(sms_program=sms_program, assigned_user=assigned_user, organization=organization)
+            task, created = UserTask.objects.get_or_create(sms_program=sms_program, assigned_user=assigned_user,
+                                                           organization=organization)
             task.contacts.add(contact)
 
         return redirect('sms_program_list')
 
 
-
-class SmsProgramDeleteView(View):
+class SmsProgramDeleteView(SMSProgramAccessRequiredMixin, View):
     def get(self, request, pk):
         if not request.user.is_authenticated:
             return redirect('login')
