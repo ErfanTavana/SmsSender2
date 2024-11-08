@@ -221,7 +221,11 @@ class ListContactsInTaskUser(View):
 
         first_user_task = user_tasks.first()
         contacts = first_user_task.contacts.all() if first_user_task else None
+        selected_sms_program = first_user_task.sms_program
+        message = selected_sms_program.message.text  # دریافت متن پیام از برنامه پیامکی
         return render(request, 'sender/send_bulk_sms.html', {
             'user_tasks': user_tasks,
-            'contacts': contacts
+            'contacts': contacts,
+            'selected_user_tasks': first_user_task.id if first_user_task else None,
+            'message': message  # ارسال متن پیام به قالب
         })

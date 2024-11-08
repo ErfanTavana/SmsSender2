@@ -79,6 +79,7 @@ class UserCreateView(UserAccessRequiredMixin, View):
                 'groups': groups,
                 'selected_groups': [],  # در ابتدا گروه‌های انتخابی خالی است
                 'access_controls': {  # دسترسی‌ها به صورت False به طور پیش‌فرض
+                    'can_access_messages': False,
                     'can_access_users': False,
                     'can_access_groups': False,
                     'can_access_sms_program': False,
@@ -108,6 +109,7 @@ class UserCreateView(UserAccessRequiredMixin, View):
                     'phone_number': phone_number,
                     'selected_groups': [int(g) for g in groups],
                     'access_controls': {  # مقادیر دسترسی‌ها را از فرم دریافت می‌کنیم
+                        'can_access_messages': request.POST.get('can_access_messages') == 'on',
                         'can_access_users': request.POST.get('can_access_users') == 'on',
                         'can_access_groups': request.POST.get('can_access_groups') == 'on',
                         'can_access_sms_program': request.POST.get('can_access_sms_program') == 'on',
@@ -127,6 +129,7 @@ class UserCreateView(UserAccessRequiredMixin, View):
             organization_id=request.user.organization.id,
             password=password,
             # تنظیم دسترسی‌ها با استفاده از مقادیر دریافت‌شده از فرم
+            can_access_messages=request.POST.get('can_access_messages') == 'on',
             can_access_users=request.POST.get('can_access_users') == 'on',
             can_access_groups=request.POST.get('can_access_groups') == 'on',
             can_access_sms_program=request.POST.get('can_access_sms_program') == 'on',
@@ -185,6 +188,8 @@ class UserEditView(UserAccessRequiredMixin, View):
 
         # دسترسی‌های کاربر
         access_controls = {
+            'can_access_messages': user.can_access_messages,
+
             'can_access_users': user.can_access_users,
             'can_access_groups': user.can_access_groups,
             'can_access_sms_program': user.can_access_sms_program,
@@ -226,6 +231,7 @@ class UserEditView(UserAccessRequiredMixin, View):
         user.groups.set(valid_groups)
 
         # تنظیم دسترسی‌ها با استفاده از مقادیر دریافت‌شده از فرم
+        user.can_access_messages = request.POST.get('can_access_messages') == 'on'
         user.can_access_users = request.POST.get('can_access_users') == 'on'
         user.can_access_groups = request.POST.get('can_access_groups') == 'on'
         user.can_access_sms_program = request.POST.get('can_access_sms_program') == 'on'
