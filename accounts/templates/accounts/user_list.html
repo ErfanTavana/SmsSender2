@@ -41,8 +41,7 @@
                     </td>
                     <td>
                         <a href="{% url 'user_edit' user.id %}" class="btn btn-sm btn-warning">ویرایش</a>
-                        <form method="post" action="{% url 'user_delete' user.id %}" style="display: inline;">
-                            {% csrf_token %}
+                        <form method="get" action="{% url 'user_delete' user.id %}" style="display: inline;">
                             <button type="submit" class="btn btn-sm btn-danger"
                                     onclick="return confirm('آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟');">
                                 حذف
