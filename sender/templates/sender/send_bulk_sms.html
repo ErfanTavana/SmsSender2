@@ -89,8 +89,8 @@
     {% if contacts %}
         <div class="d-flex justify-content-center my-3">
             <a href="sms:
-                {% for contact in contacts %}{{ contact.phone_number }}{% if not forloop.last %};{% endif %}{% endfor %}
-                ?group={{ selected_group_name }}"
+            {% for contact in contacts %}{{ contact.phone_number }}{% if not forloop.last %};{% endif %}{% endfor %}
+            ?body={{ message|urlencode }}&group={{ selected_group_name }}"
                class="btn btn-primary">
                 ارسال پیامک برای همه
             </a>
