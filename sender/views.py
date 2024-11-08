@@ -6,7 +6,7 @@ from contacts.models import Contact
 from text_messages.models import Message
 from accounts.models import User
 from organizations.models import Group
-from .mixins import SMSProgramAccessRequiredMixin
+from .mixins import SMSProgramAccessRequiredMixin, BulkSMSAccessRequiredMixin
 
 
 class CreateSmsProgramView(SMSProgramAccessRequiredMixin, View):
@@ -191,7 +191,7 @@ class SmsProgramDeleteView(SMSProgramAccessRequiredMixin, View):
         return redirect('sms_program_list')
 
 
-class ListContactsInTaskUser(View):
+class ListContactsInTaskUser(BulkSMSAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')

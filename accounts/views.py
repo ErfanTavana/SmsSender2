@@ -12,9 +12,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from .mixins import UserAccessRequiredMixin
-
 User = get_user_model()
 from django.contrib.auth.hashers import make_password
+from django.shortcuts import render, redirect
+from django.views import View
+from django.contrib.auth import get_user_model
+from organizations.models import Group  # فرض کنید مدل Group اینجا تعریف شده است
+from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login
+from django.views import View
+from sender.models import UserTask  # فرض بر این است که مدل UserTask شامل تسک‌ها است
 
 
 class LoginAPIView(APIView):
@@ -30,12 +37,6 @@ class LoginAPIView(APIView):
             'data': {},
             'message': 'نام کاربری یا رمز عبور نادرست است.'
         }, status=status.HTTP_400_BAD_REQUEST)
-
-
-from django.shortcuts import redirect
-from django.contrib.auth import authenticate, login
-from django.views import View
-from sender.models import UserTask  # فرض بر این است که مدل UserTask شامل تسک‌ها است
 
 
 class LoginView(View):
@@ -59,13 +60,6 @@ class LoginView(View):
         else:
             return render(request, 'accounts/login.html', {'message': 'نام کاربری یا رمز عبور نادرست است.', 'data': {}})
 
-
-from django.shortcuts import render, redirect
-from django.views import View
-from django.contrib.auth import get_user_model
-from organizations.models import Group  # فرض کنید مدل Group اینجا تعریف شده است
-
-User = get_user_model()
 
 
 class UserCreateView(UserAccessRequiredMixin, View):
