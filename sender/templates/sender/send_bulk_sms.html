@@ -91,9 +91,12 @@
     <!-- Button Send SMS To All Start -->
     {% if contacts %}
         <div class="d-flex justify-content-center my-3">
-            <button type="button" class="btn btn-primary">
+            <a href="sms:
+                    {% for contact in contacts %}{{ contact.phone_number }}{% if not forloop.last %};{% endif %}{% endfor %}"
+               class="btn btn-primary">
                 ارسال پیامک برای همه
-            </button>
+            </a>
         </div>
     {% endif %}
+
 {% endblock %}
