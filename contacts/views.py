@@ -32,74 +32,69 @@ class GroupListApiView(APIView):
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
 
-
 class ContactCreateApiView(APIView):
     def post(self, request):
         # بررسی دسترسی کاربر و سازمان
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
             return error_response
+        data = request.data
 
-        # دریافت داده‌های مخاطبین از درخواست
-        contacts_data = request.data.get('contacts', [])
-        if not contacts_data:
+        if not data:
             return Response({
                 'message': 'هیچ مخاطبی ارسال نشده است.',
                 'data': {}
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        created_contacts = []
-        for contact_data in contacts_data:
-            # نرمال‌سازی شماره تلفن
-            phone_number = contact_data.get('phone_number')
-            normalized_phone_number = normalize_phone_number(phone_number)
+        # نرمال‌سازی شماره تلفن
+        phone_number = data.get('phone_number')
+        normalized_phone_number = normalize_phone_number(phone_number)
 
-            # جستجو یا ایجاد مخاطب بر اساس شماره تلفن
-            contact, created = Contact.objects.get_or_create(
-                phone_number=normalized_phone_number,
-                defaults={'created_by': user, 'organization': organization_user}
-            )
+        # جستجو یا ایجاد مخاطب بر اساس شماره تلفن
+        contact, created = Contact.objects.get_or_create(
+            phone_number=normalized_phone_number,
+            defaults={'organization': organization_user}
+        )
+        # اگر groups به صورت رشته ارسال شود، آن را به لیست تبدیل می‌کنیم
+        group_data = data.get('groups', [])
+        if isinstance(group_data, str):
+            group_data = [group_data]
 
-            # اگر groups به صورت رشته ارسال شود، آن را به لیست تبدیل می‌کنیم
-            group_data = contact_data.get('groups', [])
-            if isinstance(group_data, str):
-                group_data = [group_data]
-
+        if created:
             # اگر مخاطب جدید باشد، آن را ایجاد می‌کنیم
-            if created:
-                serializer = ContactSerializer(contact, data=contact_data, context={'request': request})
-                if serializer.is_valid():
-                    contact = serializer.save()
-                    contact.groups.set(group_data)  # گروه‌ها را به مخاطب اضافه می‌کنیم
-                    created_contacts.append({'contact_info': serializer.data, 'message': 'مخاطب با موفقیت ایجاد شد.'})
-                else:
-                    # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
-                    first_error_message = next(iter(serializer.errors.values()))[0]
-                    return Response({
-                        'message': first_error_message,
-                        'data': serializer.errors
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            serializer = ContactSerializer(contact, data=data, context={'request': request})
+            if serializer.is_valid():
+                contact = serializer.save()
+                contact.groups.set(group_data)  # گروه‌ها را به مخاطب اضافه می‌کنیم
+                return Response({
+                    'message': 'مخاطب با موفقیت ایجاد شد.',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
             else:
-                # اگر مخاطب وجود داشته باشد، اطلاعات آن را به‌روزرسانی می‌کنیم
-                serializer = ContactSerializer(contact, data=contact_data, partial=True, context={'request': request})
-                if serializer.is_valid():
-                    contact = serializer.save()
-                    contact.groups.set(group_data)  # گروه‌ها را به‌روزرسانی می‌کنیم
-                    created_contacts.append(
-                        {'contact_info': serializer.data, 'message': 'مخاطب با موفقیت به‌روزرسانی شد.'})
-                else:
-                    # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
-                    first_error_message = next(iter(serializer.errors.values()))[0]
-                    return Response({
-                        'message': first_error_message,
-                        'data': serializer.errors
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
+                first_error_message = next(iter(serializer.errors.values()))[0]
+                return Response({
+                    'message': first_error_message,
+                    'data': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # اگر مخاطب وجود داشته باشد، اطلاعات آن را به‌روزرسانی می‌کنیم
+            serializer = ContactSerializer(contact, data=data, partial=True, context={'request': request})
+            if serializer.is_valid():
+                contact = serializer.save()
+                contact.groups.set(group_data)  # گروه‌ها را به‌روزرسانی می‌کنیم
+                return Response({
+                    'message': 'مخاطب با موفقیت به‌روزرسانی شد.',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            else:
+                # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
+                first_error_message = next(iter(serializer.errors.values()))[0]
+                return Response({
+                    'message': first_error_message,
+                    'data': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-        # در نهایت، پاسخ موفقیت‌آمیز با اطلاعات مخاطبین ایجاد شده
-        return Response({
-            'message': 'مخاطبین با موفقیت پردازش شدند.',
-            'data': created_contacts
-        }, status=status.HTTP_200_OK)
 
 
 class ContactCreateView(View):
