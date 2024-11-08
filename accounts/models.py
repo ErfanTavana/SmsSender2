@@ -25,8 +25,6 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True and is_superuser=True.')
 
         return self.create_user(phone_number, password, **extra_fields)
-
-
 class User(AbstractBaseUser, PermissionsMixin):
     """
     Custom User model that uses phone number for authentication and includes various user types.
@@ -46,9 +44,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField("date joined", default=timezone.now)
     organization = models.ForeignKey('organizations.Organization', on_delete=models.SET_NULL, null=True, blank=True,
                                      verbose_name="سازمان")
-
     groups = models.ManyToManyField("organizations.Group", verbose_name="گروه‌ها", related_name="users",
                                     blank=True)  # ارتباط با گروه‌ها
+
+    # Access control fields
+    can_access_messages = models.BooleanField("access to messages", default=False,
+                                              help_text="Designates whether this user has access to messages.")
+    can_access_users = models.BooleanField("access to users", default=False,
+                                           help_text="Designates whether this user has access to manage users.")
+    can_access_groups = models.BooleanField("access to groups", default=False,
+                                            help_text="Designates whether this user has access to manage groups.")
+    can_access_sms_program = models.BooleanField("access to SMS program", default=False,
+                                                 help_text="Designates whether this user has access to SMS program.")
+    can_access_contacts = models.BooleanField("access to contacts", default=False,
+                                              help_text="Designates whether this user has access to manage contacts.")
+    can_send_bulk_sms = models.BooleanField("send bulk SMS", default=False,
+                                            help_text="Designates whether this user can send bulk SMS messages.")
 
     USERNAME_FIELD = 'phone_number'  # Set phone_number as the unique identifier for authentication
     objects = CustomUserManager()  # Assign the custom user manager

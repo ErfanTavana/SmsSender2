@@ -66,7 +66,14 @@ class UserCreateView(View):
             'message': '',
             'data': {
                 'groups': groups,
-                'selected_groups': []  # در ابتدا گروه‌های انتخابی خالی است
+                'selected_groups': [],  # در ابتدا گروه‌های انتخابی خالی است
+                'access_controls': {  # دسترسی‌ها به صورت False به طور پیش‌فرض
+                    'can_access_users': False,
+                    'can_access_groups': False,
+                    'can_access_sms_program': False,
+                    'can_access_contacts': False,
+                    'can_send_bulk_sms': False,
+                }
             }
         })
 
@@ -80,7 +87,6 @@ class UserCreateView(View):
         # بررسی وجود کاربر با شماره تلفن وارد شده
         if User.objects.filter(phone_number=phone_number).exists():
             groups_queryset = Group.objects.filter(organization_id=request.user.organization.id)
-            # ارسال پیام خطا به قالب
             return render(request, 'accounts/user_create.html', {
                 'message': "کاربری با این شماره تلفن از قبل وجود دارد.",
                 'data': {
@@ -89,23 +95,34 @@ class UserCreateView(View):
                     'last_name': last_name,
                     'phone_number': phone_number,
                     'selected_groups': [int(g) for g in groups],
+                    'access_controls': {  # مقادیر دسترسی‌ها را از فرم دریافت می‌کنیم
+                        'can_access_users': request.POST.get('can_access_users') == 'on',
+                        'can_access_groups': request.POST.get('can_access_groups') == 'on',
+                        'can_access_sms_program': request.POST.get('can_access_sms_program') == 'on',
+                        'can_access_contacts': request.POST.get('can_access_contacts') == 'on',
+                        'can_send_bulk_sms': request.POST.get('can_send_bulk_sms') == 'on',
+                    }
                 }
             })
 
-        # ساخت کاربر جدید با استفاده از create_user
+        # ساخت کاربر جدید
         new_user = User.objects.create_user(
             phone_number=phone_number,
             first_name=first_name,
             last_name=last_name,
             organization_id=request.user.organization.id,
-            password=password
+            password=password,
+            # تنظیم دسترسی‌ها با استفاده از مقادیر دریافت‌شده از فرم
+            can_access_users=request.POST.get('can_access_users') == 'on',
+            can_access_groups=request.POST.get('can_access_groups') == 'on',
+            can_access_sms_program=request.POST.get('can_access_sms_program') == 'on',
+            can_access_contacts=request.POST.get('can_access_contacts') == 'on',
+            can_send_bulk_sms=request.POST.get('can_send_bulk_sms') == 'on',
         )
 
-        # فیلتر کردن گروه‌های معتبر برای اطمینان از تعلق به سازمان کاربر
+        # تنظیم گروه‌های معتبر برای کاربر جدید
         valid_groups = Group.objects.filter(id__in=groups, organization_id=request.user.organization.id).values_list(
             'id', flat=True)
-
-        # تنظیم گروه‌های معتبر برای کاربر جدید
         new_user.groups.set(valid_groups)
 
         return redirect('user_list')
@@ -113,9 +130,26 @@ class UserCreateView(View):
 
 class UserListView(View):
     def get(self, request):
-        users = User.objects.filter(
-            organization_id=request.user.organization.id)  # می‌توانید فیلترهای بیشتری برای کاربران اضافه کنید
-        return render(request, 'accounts/user_list.html', {'message': '', 'data': {'users': users}})
+        users = User.objects.filter(organization_id=request.user.organization.id)
+
+        # تبدیل کاربران به لیست شامل اطلاعات دسترسی‌ها
+        user_data = []
+        for user in users:
+            user_data.append({
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone_number': user.phone_number,
+                'gender': user.gender,
+                'groups': user.groups.all(),
+                'can_access_users': user.can_access_users,
+                'can_access_groups': user.can_access_groups,
+                'can_access_sms_program': user.can_access_sms_program,
+                'can_access_contacts': user.can_access_contacts,
+                'can_send_bulk_sms': user.can_send_bulk_sms,
+            })
+
+        return render(request, 'accounts/user_list.html', {'message': '', 'data': {'users': user_data}})
 
 
 class UserEditView(View):
@@ -129,10 +163,20 @@ class UserEditView(View):
         # یافتن گروه‌های انتخاب شده توسط کاربر
         selected_groups = user.groups.values_list('id', flat=True)
 
+        # دسترسی‌های کاربر
+        access_controls = {
+            'can_access_users': user.can_access_users,
+            'can_access_groups': user.can_access_groups,
+            'can_access_sms_program': user.can_access_sms_program,
+            'can_access_contacts': user.can_access_contacts,
+            'can_send_bulk_sms': user.can_send_bulk_sms,
+        }
+
         return render(request, 'accounts/user_edit.html', {
             'user': user,
             'groups': groups,
-            'selected_groups': selected_groups
+            'selected_groups': selected_groups,
+            'access_controls': access_controls
         })
 
     def post(self, request, user_id):
@@ -155,14 +199,18 @@ class UserEditView(View):
         user.phone_number = phone_number
         user.gender = gender
         user.groups.set(valid_groups)
+
+        # تنظیم دسترسی‌ها با استفاده از مقادیر دریافت‌شده از فرم
+        user.can_access_users = request.POST.get('can_access_users') == 'on'
+        user.can_access_groups = request.POST.get('can_access_groups') == 'on'
+        user.can_access_sms_program = request.POST.get('can_access_sms_program') == 'on'
+        user.can_access_contacts = request.POST.get('can_access_contacts') == 'on'
+        user.can_send_bulk_sms = request.POST.get('can_send_bulk_sms') == 'on'
+
         user.save()
 
         # انتقال به صفحه‌ی لیست کاربران یا نمایش پیغام موفقیت
         return redirect('user_list')
-
-
-from django.http import HttpResponseForbidden
-
 
 class UserDeleteView(View):
     def get(self, request, user_id):
