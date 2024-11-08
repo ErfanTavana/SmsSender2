@@ -189,3 +189,37 @@ class SmsProgramDeleteView(SMSProgramAccessRequiredMixin, View):
         sms_program = get_object_or_404(SmsProgram, pk=pk, organization=request.user.organization)
         sms_program.delete()
         return redirect('sms_program_list')
+
+
+class ListContactsInTaskUser(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        user = request.user
+        sms_program = request.GET.get('sms_program')
+        print(sms_program)
+
+        if sms_program:
+            user_tasks = UserTask.objects.filter(assigned_user=user)
+            user_task = user_tasks.filter(sms_program=sms_program).first()  # دریافت اولین شیء
+
+            contacts = user_task.contacts.all() if user_task else None
+
+            return render(request, 'sender/send_bulk_sms.html', {
+                'user_tasks': user_tasks,
+                'contacts': contacts,
+                'selected_user_tasks': user_task.id if user_task else None
+            })
+
+        user_tasks = UserTask.objects.filter(assigned_user=user)
+
+        if not user_tasks.exists():  # بررسی اگر user_tasks خالی باشد
+            return render(request, 'sender/send_bulk_sms.html', {'user_tasks': None, 'contacts': None})
+
+        # اگر user_tasks وجود داشت
+        first_user_task = user_tasks.first()
+        contacts = first_user_task.contacts.all() if first_user_task else None
+        return render(request, 'sender/send_bulk_sms.html', {
+            'user_tasks': user_tasks,
+            'contacts': contacts
+        })

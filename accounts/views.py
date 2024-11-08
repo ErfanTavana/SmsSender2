@@ -32,6 +32,12 @@ class LoginAPIView(APIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
+from django.shortcuts import redirect
+from django.contrib.auth import authenticate, login
+from django.views import View
+from sender.models import UserTask  # فرض بر این است که مدل UserTask شامل تسک‌ها است
+
+
 class LoginView(View):
     def get(self, request):
         if request.user.is_authenticated:
@@ -45,7 +51,11 @@ class LoginView(View):
         user = authenticate(phone_number=phone_number, password=password)
         if user:
             login(request, user)
-            return redirect('home')
+            # بررسی وجود تسک برای کاربر
+            if UserTask.objects.filter(assigned_user=user).exists():
+                return redirect('list_contacts_in_task_user')
+            else:
+                return redirect('home')
         else:
             return render(request, 'accounts/login.html', {'message': 'نام کاربری یا رمز عبور نادرست است.', 'data': {}})
 
@@ -74,6 +84,7 @@ class UserCreateView(UserAccessRequiredMixin, View):
                     'can_access_sms_program': False,
                     'can_access_contacts': False,
                     'can_send_bulk_sms': False,
+                    'can_add_contacts': False
                 }
             }
         })
@@ -102,6 +113,8 @@ class UserCreateView(UserAccessRequiredMixin, View):
                         'can_access_sms_program': request.POST.get('can_access_sms_program') == 'on',
                         'can_access_contacts': request.POST.get('can_access_contacts') == 'on',
                         'can_send_bulk_sms': request.POST.get('can_send_bulk_sms') == 'on',
+                        'can_add_contacts': request.POST.get('can_add_contacts') == 'on',
+
                     }
                 }
             })
@@ -119,6 +132,8 @@ class UserCreateView(UserAccessRequiredMixin, View):
             can_access_sms_program=request.POST.get('can_access_sms_program') == 'on',
             can_access_contacts=request.POST.get('can_access_contacts') == 'on',
             can_send_bulk_sms=request.POST.get('can_send_bulk_sms') == 'on',
+            can_add_contacts=request.POST.get('can_add_contacts') == 'on',
+
         )
 
         # تنظیم گروه‌های معتبر برای کاربر جدید
@@ -171,6 +186,8 @@ class UserEditView(UserAccessRequiredMixin, View):
             'can_access_sms_program': user.can_access_sms_program,
             'can_access_contacts': user.can_access_contacts,
             'can_send_bulk_sms': user.can_send_bulk_sms,
+            'can_add_contacts': user.can_add_contacts,
+
         }
 
         return render(request, 'accounts/user_edit.html', {
@@ -207,6 +224,7 @@ class UserEditView(UserAccessRequiredMixin, View):
         user.can_access_sms_program = request.POST.get('can_access_sms_program') == 'on'
         user.can_access_contacts = request.POST.get('can_access_contacts') == 'on'
         user.can_send_bulk_sms = request.POST.get('can_send_bulk_sms') == 'on'
+        user.can_add_contacts = request.POST.get('can_add_contacts') == 'on'
 
         user.save()
 

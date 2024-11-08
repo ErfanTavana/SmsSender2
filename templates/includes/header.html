@@ -18,11 +18,18 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}" role="button" aria-expanded="false">آمار</a>
                 </li>
+                {% if request.user.can_send_bulk_sms %}
 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'list_contacts_in_task_user' %}" role="button"
+                           aria-expanded="false">ارسال پیامک
+                            همگانی</a>
+                    </li>
+                {% endif %}
                 {% if request.user.can_access_messages %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -61,8 +68,10 @@
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                            data-bs-toggle="dropdown" aria-expanded="false">برنامه پیامکی</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a></li>
-                            <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a></li>
+                            <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی
+                                جدید</a></li>
                         </ul>
                     </li>
                 {% endif %}
