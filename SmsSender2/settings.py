@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'contacts',
     'text_messages',
     'sender',
+    'home',
 ]
 
 MIDDLEWARE = [

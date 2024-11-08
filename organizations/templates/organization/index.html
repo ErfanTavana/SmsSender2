@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}داشبورد مخاطبین{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">داشبورد آماری مخاطبین سازمان</h2>
+    
+    <div class="row mt-4">
+        <!-- نمودار توزیع جنسیتی -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">توزیع جنسیتی مخاطبین</h4>
+            <canvas id="genderDistributionChart"></canvas>
+        </div>
+
+        <!-- نمودار توزیع بر اساس تاریخ ایجاد -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">توزیع بر اساس تاریخ ایجاد</h4>
+            <canvas id="creationDateChart"></canvas>
+        </div>
+
+        <!-- نمودار توزیع گروهی مخاطبین -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">توزیع گروهی مخاطبین</h4>
+            <canvas id="groupDistributionChart"></canvas>
+        </div>
+
+        <!-- نمودار توزیع مخاطبین بر اساس سازمان -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">توزیع مخاطبین بر اساس سازمان</h4>
+            <canvas id="organizationDistributionChart"></canvas>
+        </div>
+
+        <!-- نمودار ترکیبی جنسیت و گروه -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">ترکیب جنسیت و گروه</h4>
+            <canvas id="genderGroupChart"></canvas>
+        </div>
+
+        <!-- نمودار تعداد مخاطبین ایجاد شده توسط کاربران -->
+        <div class="col-md-6 mb-4">
+            <h4 class="text-center">تعداد مخاطبین ایجاد شده توسط کاربران</h4>
+            <canvas id="userCreationChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // نمودار توزیع جنسیتی
+    const genderDistributionChart = new Chart(document.getElementById('genderDistributionChart'), {
+        type: 'pie',
+        data: {
+            labels: ['مرد', 'زن'],
+            datasets: [{
+                label: 'توزیع جنسیتی',
+                data: [{{ male_count }}, {{ female_count }}],
+                backgroundColor: ['#007bff', '#dc3545']
+            }]
+        }
+    });
+
+    // نمودار توزیع بر اساس تاریخ ایجاد
+    const creationDateChart = new Chart(document.getElementById('creationDateChart'), {
+        type: 'line',
+        data: {
+            labels: {{ creation_dates }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ creation_counts }},
+                backgroundColor: '#28a745',
+                borderColor: '#28a745',
+                fill: false
+            }]
+        }
+    });
+
+    // نمودار توزیع گروهی مخاطبین
+    const groupDistributionChart = new Chart(document.getElementById('groupDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ group_names }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ group_counts }},
+                backgroundColor: '#ffc107'
+            }]
+        }
+    });
+
+    // نمودار توزیع مخاطبین بر اساس سازمان
+    const organizationDistributionChart = new Chart(document.getElementById('organizationDistributionChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ organization_names }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ organization_counts }},
+                backgroundColor: ['#007bff', '#dc3545', '#28a745', '#ffc107', '#6f42c1']
+            }]
+        }
+    });
+
+    // نمودار ترکیبی جنسیت و گروه
+    const genderGroupChart = new Chart(document.getElementById('genderGroupChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ group_names }},
+            datasets: [
+                {
+                    label: 'مرد',
+                    data: {{ male_group_counts }},
+                    backgroundColor: '#007bff'
+                },
+                {
+                    label: 'زن',
+                    data: {{ female_group_counts }},
+                    backgroundColor: '#dc3545'
+                }
+            ]
+        }
+    });
+
+    // نمودار تعداد مخاطبین ایجاد شده توسط کاربران
+    const userCreationChart = new Chart(document.getElementById('userCreationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ user_names }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ user_counts }},
+                backgroundColor: '#6f42c1'
+            }]
+        }
+    });
+</script>
+
+{% endblock %}

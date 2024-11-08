@@ -32,6 +32,18 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a
+                            class="nav-link"
+                            href="{% url 'home' %}"
+                            role="button"
+                            aria-expanded="false"
+                    >
+                        آمار
+                    </a>
+                </li>
+
+
                 <li class="nav-item dropdown">
                     <a
                             class="nav-link dropdown-toggle"
@@ -93,7 +105,8 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url 'sms_program_list' %}">لیست برنامه پیامکی ها</a></li>
-                        <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a></li>
+                        <li><a class="dropdown-item" href="{% url 'create_sms_program' %}">ایجاد برنامه پیامکی جدید</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -115,12 +128,12 @@
             </ul>
             <form class="d-flex" method="GET" action="{% url 'contact_list' %}">
                 <input
-                    class="form-control me-2"
-                    type="search"
-                    name="search"
-                    placeholder="جستجو"
-                    aria-label="Search"
-                    value="{{ search_query }}"
+                        class="form-control me-2"
+                        type="search"
+                        name="search"
+                        placeholder="جستجو"
+                        aria-label="Search"
+                        value="{{ search_query }}"
                 />
                 <button class="btn btn-outline-success" type="submit">جستجو</button>
             </form>

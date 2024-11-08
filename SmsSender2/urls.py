@@ -30,6 +30,7 @@ urlpatterns = [
     path('organizations/', include('organizations.urls')),
 
     path('sender/', include('sender.urls')),
+    path('', include('home.urls')),
 
 ]
 if settings.DEBUG:

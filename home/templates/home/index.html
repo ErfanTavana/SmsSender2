@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}داشبورد مخاطبین{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">داشبورد آماری مخاطبین سازمان</h2>
+    
+    <div class="row mt-4">
+        <!-- نمودار توزیع جنسیتی -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <h4 class="text-center">توزیع جنسیتی مخاطبین</h4>
+            <canvas id="genderDistributionChart" class="chart-canvas"></canvas>
+        </div>
+
+        <!-- نمودار توزیع بر اساس تاریخ ایجاد -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <h4 class="text-center">توزیع بر اساس تاریخ ایجاد</h4>
+            <canvas id="creationDateChart" class="chart-canvas"></canvas>
+        </div>
+
+        <!-- نمودار توزیع گروهی مخاطبین -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <h4 class="text-center">توزیع گروهی مخاطبین</h4>
+            <canvas id="groupDistributionChart" class="chart-canvas"></canvas>
+        </div>
+
+        <!-- نمودار ترکیبی جنسیت و گروه -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <h4 class="text-center">ترکیب جنسیت و گروه</h4>
+            <canvas id="genderGroupChart" class="chart-canvas"></canvas>
+        </div>
+
+        <!-- نمودار تعداد مخاطبین ایجاد شده توسط کاربران -->
+        <div class="col-lg-6 col-md-12 mb-4">
+            <h4 class="text-center">تعداد مخاطبین ایجاد شده توسط کاربران</h4>
+            <canvas id="userCreationChart" class="chart-canvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chart-canvas {
+        width: 100% !important;
+        height: 400px !important; /* تنظیم ارتفاع بیشتر برای نمودارها */
+        max-height: 400px;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // نمودار توزیع جنسیتی
+    const genderDistributionChart = new Chart(document.getElementById('genderDistributionChart'), {
+        type: 'pie',
+        data: {
+            labels: ['مرد', 'زن'],
+            datasets: [{
+                label: 'توزیع جنسیتی',
+                data: [{{ male_count }}, {{ female_count }}],
+                backgroundColor: ['#007bff', '#dc3545']
+            }]
+        }
+    });
+
+    // نمودار توزیع بر اساس تاریخ ایجاد
+    const creationDateChart = new Chart(document.getElementById('creationDateChart'), {
+        type: 'line',
+        data: {
+            labels: {{ creation_dates|safe }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ creation_counts|safe }},
+                backgroundColor: '#28a745',
+                borderColor: '#28a745',
+                fill: false
+            }]
+        }
+    });
+
+    // نمودار توزیع گروهی مخاطبین
+    const groupDistributionChart = new Chart(document.getElementById('groupDistributionChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ group_names|safe }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ group_counts|safe }},
+                backgroundColor: '#ffc107'
+            }]
+        }
+    });
+
+    // نمودار ترکیبی جنسیت و گروه
+    const genderGroupChart = new Chart(document.getElementById('genderGroupChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ group_names|safe }},
+            datasets: [
+                {
+                    label: 'مرد',
+                    data: {{ male_group_counts|safe }},
+                    backgroundColor: '#007bff'
+                },
+                {
+                    label: 'زن',
+                    data: {{ female_group_counts|safe }},
+                    backgroundColor: '#dc3545'
+                }
+            ]
+        }
+    });
+
+    // نمودار تعداد مخاطبین ایجاد شده توسط کاربران
+    const userCreationChart = new Chart(document.getElementById('userCreationChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ user_names|safe }},
+            datasets: [{
+                label: 'تعداد مخاطبین',
+                data: {{ user_counts|safe }},
+                backgroundColor: '#6f42c1'
+            }]
+        }
+    });
+</script>
+
+{% endblock %}
