@@ -1,0 +1,21 @@
+{
+  "app": "smssender2",
+  "platform": "django",
+  "django": {
+    "mirror": false,
+    "pythonVersion": "3.12"
+  },
+  "build": {
+    "location": "iran"
+  },
+  "disks": [
+    {
+      "name": "data",
+      "mountTo": "data"
+    },
+    {
+      "name": "media",
+      "mountTo": "media"
+    }
+  ]
+}
