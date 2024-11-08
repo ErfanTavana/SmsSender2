@@ -170,6 +170,10 @@ class UserListView(UserAccessRequiredMixin, View):
 
 class UserEditView(UserAccessRequiredMixin, View):
     def get(self, request, user_id):
+        # جلوگیری از ویرایش خود کاربر
+        if user_id == request.user.id:
+            return redirect('user_list')
+
         # یافتن کاربر با شناسه مشخص
         user = get_object_or_404(User, id=user_id)
 
@@ -187,7 +191,6 @@ class UserEditView(UserAccessRequiredMixin, View):
             'can_access_contacts': user.can_access_contacts,
             'can_send_bulk_sms': user.can_send_bulk_sms,
             'can_add_contacts': user.can_add_contacts,
-
         }
 
         return render(request, 'accounts/user_edit.html', {
@@ -198,6 +201,10 @@ class UserEditView(UserAccessRequiredMixin, View):
         })
 
     def post(self, request, user_id):
+        # جلوگیری از ویرایش خود کاربر
+        if user_id == request.user.id:
+            return redirect('user_list')  # یا می‌توانید یک پیام خطا نمایش دهید
+
         user = get_object_or_404(User, id=user_id)
 
         # دریافت داده‌ها از فرم

@@ -87,12 +87,14 @@
                     </li>
                 {% endif %}
             </ul>
+            {% if request.user.can_access_users %}
 
-            <form class="d-flex" method="GET" action="{% url 'contact_list' %}">
-                <input class="form-control me-2" type="search" name="search" placeholder="جستجو"
-                       aria-label="Search" value="{{ search_query }}"/>
-                <button class="btn btn-outline-success" type="submit">جستجو</button>
-            </form>
+                <form class="d-flex" method="GET" action="{% url 'contact_list' %}">
+                    <input class="form-control me-2" type="search" name="search" placeholder="جستجو"
+                           aria-label="Search" value="{{ search_query }}"/>
+                    <button class="btn btn-outline-success" type="submit">جستجو</button>
+                </form>
+            {% endif %}
         </div>
     </div>
 </nav>
