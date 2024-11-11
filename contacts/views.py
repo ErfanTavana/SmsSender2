@@ -86,7 +86,9 @@ class ContactCreateApiView(APIView):
             if serializer.is_valid():
                 contact = serializer.save()
                 contact.groups.set([group_user])
-                contact.created_by = user  # اینجا اصلاح شد
+                contact.created_by = user
+                contact.save()
+
 
                 # گرفتن آخرین پیام ارسال‌شده به گروه‌ها
                 last_message = None
@@ -115,6 +117,7 @@ class ContactCreateApiView(APIView):
                 contact = serializer.save()
                 contact.groups.add(group_user)  # فقط گروه جدید را به گروه‌های مخاطب اضافه می‌کنیم
                 contact.created_by = user  # اینجا اصلاح شد
+                contact.save()
 
                 # گرفتن آخرین پیام ارسال‌شده به گروه‌ها
                 last_message = None
