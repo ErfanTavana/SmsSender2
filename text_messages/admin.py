@@ -4,7 +4,7 @@ from .models import Message
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = (
-        'text', 'organization' ,'created_by', 'message_type', 'is_approved', 'created_at'
+        'text', 'organization' ,'created_by', 'message_type', 'is_approved', 'created_at' , 'groups'
     )
     search_fields = ('text', 'created_by__username', 'organization__name')
     list_filter = ('message_type', 'is_approved', 'organization')
@@ -13,7 +13,7 @@ class MessageAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('text', 'organization', 'created_by', 'message_type', 'is_approved', 'created_at')
+            'fields': ('text', 'organization', 'created_by', 'message_type', 'is_approved', 'created_at','groups')
         }),
     )
 
