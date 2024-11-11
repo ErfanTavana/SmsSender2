@@ -98,8 +98,7 @@ class ContactCreateApiView(APIView):
 
                 return Response({
                     'message': 'مخاطب با موفقیت ایجاد شد.',
-                    'data': serializer.data,
-                    'last_message': last_message_text  # پیام آخرین ارسال‌شده
+                    'data': {**serializer.data, 'last_message': last_message_text},  # اضافه کردن last_message به data
                 }, status=status.HTTP_201_CREATED)
             else:
                 # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
@@ -124,10 +123,10 @@ class ContactCreateApiView(APIView):
 
                 last_message_text = last_message.text if last_message else None
 
+                # اضافه کردن آخرین پیام به data
                 return Response({
                     'message': 'مخاطب با موفقیت به‌روزرسانی شد.',
-                    'data': serializer.data,
-                    'last_message': last_message_text  # پیام آخرین ارسال‌شده
+                    'data': {**serializer.data, 'last_message': last_message_text},  # اضافه کردن last_message به data
                 }, status=status.HTTP_200_OK)
             else:
                 # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
@@ -136,6 +135,8 @@ class ContactCreateApiView(APIView):
                     'message': first_error_message,
                     'data': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class ContactCreateView(ContactAccessRequiredMixin, View):
