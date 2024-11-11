@@ -99,7 +99,7 @@ class ContactCreateApiView(APIView):
                 return Response({
                     'message': 'مخاطب با موفقیت ایجاد شد.',
                     'data': {**serializer.data, 'last_message': last_message_text},  # اضافه کردن last_message به data
-                }, status=status.HTTP_201_CREATED)
+                }, status=status.HTTP_200_OK)
             else:
                 # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
                 first_error_message = next(iter(serializer.errors.values()))[0]
