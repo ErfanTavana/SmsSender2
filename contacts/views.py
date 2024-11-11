@@ -8,12 +8,13 @@ from rest_framework.views import APIView
 from .serializers import ContactSerializer
 from SmsSender2.utils import normalize_phone_number
 from .models import Contact, Group
-from django.shortcuts import  get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect, render
 from django.views import View
 from django.db.models import Q  # برای جستجو
 from .models import Contact
 from .mixins import ContactAccessRequiredMixin
+from text_messages.models import Message
 
 User = get_user_model()
 
@@ -67,20 +68,38 @@ class ContactCreateApiView(APIView):
             phone_number=normalized_phone_number,
             defaults={'organization': organization_user}
         )
-        # اگر groups به صورت رشته ارسال شود، آن را به لیست تبدیل می‌کنیم
-        group_data = data.get('groups', [])
-        if isinstance(group_data, str):
-            group_data = [group_data]
+
+        # گرفتن شناسه گروه از داده‌ها
+        group_id = data.get('group_id')
+        # اطمینان از اینکه گروه متعلق به سازمان کاربر است
+        group_user = user.groups.filter(id=group_id, organization=organization_user).first()
+        # چک کردن وجود گروه و دسترسی کاربر
+        if not group_user:
+            return Response({
+                'message': 'گروه معتبر نیست یا شما دسترسی به این گروه ندارید.',
+                'data': {}
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         if created:
             # اگر مخاطب جدید باشد، آن را ایجاد می‌کنیم
             serializer = ContactSerializer(contact, data=data, context={'request': request})
             if serializer.is_valid():
                 contact = serializer.save()
-                contact.groups.set(group_data)  # گروه‌ها را به مخاطب اضافه می‌کنیم
+                contact.groups.set([group_user])
+
+                # گرفتن آخرین پیام ارسال‌شده به گروه‌ها
+                last_message = None
+                if contact.groups.exists():
+                    last_message = Message.objects.filter(
+                        groups_id=group_user.id, is_approved=True, organization=organization_user
+                    ).order_by('-created_at').first()
+
+                last_message_text = last_message.text if last_message else None
+
                 return Response({
                     'message': 'مخاطب با موفقیت ایجاد شد.',
-                    'data': serializer.data
+                    'data': serializer.data,
+                    'last_message': last_message_text  # پیام آخرین ارسال‌شده
                 }, status=status.HTTP_201_CREATED)
             else:
                 # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
@@ -94,10 +113,21 @@ class ContactCreateApiView(APIView):
             serializer = ContactSerializer(contact, data=data, partial=True, context={'request': request})
             if serializer.is_valid():
                 contact = serializer.save()
-                contact.groups.set(group_data)  # گروه‌ها را به‌روزرسانی می‌کنیم
+                contact.groups.add(group_user)  # فقط گروه جدید را به گروه‌های مخاطب اضافه می‌کنیم
+
+                # گرفتن آخرین پیام ارسال‌شده به گروه‌ها
+                last_message = None
+                if contact.groups.exists():
+                    last_message = Message.objects.filter(
+                        groups__in=contact.groups.all(), is_approved=True
+                    ).order_by('-created_at').first()
+
+                last_message_text = last_message.text if last_message else None
+
                 return Response({
                     'message': 'مخاطب با موفقیت به‌روزرسانی شد.',
-                    'data': serializer.data
+                    'data': serializer.data,
+                    'last_message': last_message_text  # پیام آخرین ارسال‌شده
                 }, status=status.HTTP_200_OK)
             else:
                 # در صورت وجود خطا در اعتبارسنجی، پیام خطا را برمی‌گردانیم
