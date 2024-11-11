@@ -4,7 +4,7 @@ from .models import Message
 
 class MessageAdmin(admin.ModelAdmin):
     list_display = (
-        'text', 'organization' ,'created_by', 'message_type', 'is_approved', 'created_at' , 'groups'
+        'text', 'organization' ,'created_by', 'message_type', 'is_approved', 'created_at'
     )
     search_fields = ('text', 'created_by__username', 'organization__name')
     list_filter = ('message_type', 'is_approved', 'organization')
