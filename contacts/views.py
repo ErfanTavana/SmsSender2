@@ -91,7 +91,7 @@ class ContactCreateApiView(APIView):
                 last_message = None
                 if contact.groups.exists():
                     last_message = Message.objects.filter(
-                        groups_id=group_user.id, is_approved=True, organization=organization_user
+                        groups__id=group_user.id, is_approved=True, organization=organization_user, message_type='فردی'
                     ).order_by('-created_at').first()
 
                 last_message_text = last_message.text if last_message else None
@@ -118,7 +118,7 @@ class ContactCreateApiView(APIView):
                 last_message = None
                 if contact.groups.exists():
                     last_message = Message.objects.filter(
-                        groups__in=contact.groups.all(), is_approved=True
+                        groups__id=group_user.id, is_approved=True, organization=organization_user, message_type='فردی'
                     ).order_by('-created_at').first()
 
                 last_message_text = last_message.text if last_message else None
@@ -135,8 +135,6 @@ class ContactCreateApiView(APIView):
                     'message': first_error_message,
                     'data': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-
-
 
 
 class ContactCreateView(ContactAccessRequiredMixin, View):
