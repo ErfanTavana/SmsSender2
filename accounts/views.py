@@ -23,6 +23,10 @@ from django.contrib.auth import authenticate, login
 from django.views import View
 from sender.models import UserTask  # فرض بر این است که مدل UserTask شامل تسک‌ها است
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+from django.views import View
+
 
 class LoginAPIView(APIView):
     def post(self, request):
@@ -61,6 +65,10 @@ class LoginView(View):
             return render(request, 'accounts/login.html', {'message': 'نام کاربری یا رمز عبور نادرست است.', 'data': {}})
 
 
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('login')  # کاربر را به صفحه‌ی ورود هدایت می‌کند
 
 class UserCreateView(UserAccessRequiredMixin, View):
     def get(self, request):
