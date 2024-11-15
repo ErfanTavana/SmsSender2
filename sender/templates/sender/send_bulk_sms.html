@@ -14,17 +14,14 @@
     {% endif %}
 
     {% if user_tasks %}
-        <!-- Form Start -->
+        <!-- فرم انتخاب برنامه پیامکی -->
         <div class="container mt-5">
             <div class="card">
-                <div class="card-header" style="background-color: #f8f9fa; font-weight: bold;">فرم ارسال پیامک همگانی
-                </div>
+                <div class="card-header" style="background-color: #f8f9fa; font-weight: bold;">فرم ارسال پیامک همگانی</div>
                 <div class="card-body" style="padding: 20px;">
                     <form method="get">
-                        <!-- انتخاب برنامه پیامکی -->
                         <div class="mb-3">
-                            <label for="sms_program" class="form-label" style="font-size: 1rem;">انتخاب برنامه
-                                پیامکی</label>
+                            <label for="sms_program" class="form-label" style="font-size: 1rem;">انتخاب برنامه پیامکی</label>
                             <select id="sms_program" name="sms_program" class="form-select" required
                                     style="border-radius: 5px; padding: 10px;">
                                 <option value="" disabled selected>انتخاب برنامه...</option>
@@ -36,7 +33,6 @@
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="d-flex justify-content-center">
                             <button type="submit" class="btn btn-primary"
                                     style="font-size: 1rem; padding: 10px 20px; background-color: #007bff; border: none;">
@@ -58,7 +54,6 @@
     <!-- نمایش لیست مخاطبین -->
     {% if contacts %}
         <div class="contact-list mt-4">
-            <!-- Item one of list Start -->
             {% for contact in contacts %}
                 <div class="shadow-sm p-3 mb-3 mx-3 bg-light rounded d-flex justify-content-between align-items-center"
                      style="transition: all 0.3s ease; border: 1px solid #dee2e6; padding: 20px;">
@@ -76,13 +71,12 @@
                         <div class="d-flex justify-content-between">
                             <span style="font-size: 1.1rem; font-weight: 600; color: #333;">شماره موبایل:</span>
                             <span dir="ltr" class="fw-bold phone-number" style="font-size: 1.1rem; color: #495057;">
-                                {{ contact.phone_number|slice:":3" }}*****{{ contact.phone_number|slice:"8:" }}
+                                {{ contact.phone_number }}
                             </span>
                         </div>
                     </div>
                 </div>
             {% endfor %}
-            <!-- Item one of list End -->
         </div>
     {% else %}
         <div class="container mt-3">
@@ -93,18 +87,62 @@
         </div>
     {% endif %}
 
-    <!-- Button Send SMS To All Start -->
+    <!-- دکمه‌های ارسال و کپی -->
     {% if contacts %}
         <div class="d-flex justify-content-center my-3">
+            <!-- دکمه ارسال پیامک برای همه -->
             <a href="sms:
                 {% for contact in contacts %}{{ contact.phone_number }}{% if not forloop.last %};{% endif %}{% endfor %}
-                ?body={{ message|urlencode }}&group={{ selected_group_name }}"
-               class="btn btn-primary"
-               style="font-size: 1rem; padding: 10px 20px; background-color: #007bff; border: none;
-               position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999;">
+                ?body={{ message|urlencode }}"
+               class="btn btn-primary mx-2"
+               style="font-size: 1rem; padding: 10px 20px; background-color: #007bff; border: none;">
                 ارسال پیامک برای همه
             </a>
+
+            <!-- دکمه کپی شماره‌ها -->
+            <button id="copy-numbers" class="btn btn-secondary mx-2"
+                    style="font-size: 1rem; padding: 10px 20px; background-color: #6c757d; border: none;">
+                کپی شماره‌ها
+            </button>
         </div>
     {% endif %}
+<script>
+// دکمه کپی شماره‌ها
+document.getElementById('copy-numbers').addEventListener('click', function () {
+    // جمع‌آوری شماره‌ها و جدا کردن با کاما
+    const phoneNumbers = Array.from(document.querySelectorAll('.phone-number'))
+        .map(element => element.textContent.trim())
+        .join(',');
 
+    // بررسی اینکه آیا شماره‌ای برای کپی کردن وجود دارد
+    if (!phoneNumbers) {
+        alert('شماره‌ای برای کپی کردن وجود ندارد.');
+        return;
+    }
+
+    // ایجاد یک تکست‌اریا موقت برای کپی کردن متن
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = phoneNumbers;
+    tempTextarea.style.position = 'absolute';
+    tempTextarea.style.left = '-9999px'; // پنهان کردن تکست‌اریا
+    document.body.appendChild(tempTextarea);
+
+    // انتخاب و کپی متن
+    tempTextarea.select();
+    tempTextarea.setSelectionRange(0, tempTextarea.value.length); // برای سازگاری با موبایل
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            alert('شماره‌ها با موفقیت کپی شدند.');
+        } else {
+            alert('خطا در کپی شماره‌ها.');
+        }
+    } catch (err) {
+        alert('مرورگر شما از کپی کردن پشتیبانی نمی‌کند.');
+    }
+
+    // حذف تکست‌اریا موقت
+    document.body.removeChild(tempTextarea);
+});
+</script>
 {% endblock %}
