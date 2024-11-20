@@ -37,7 +37,7 @@ def send_contacts(file_path):
                 print("Response:", response.status_code)
         except Exception as e:
             print(f"An error occurred: {e}")
-file_path = "C:/Users/BackEnd/Desktop/مخاطبین/Contact-2024-11-12.xlsx"
+file_path = "Contact-2024-11-20.xlsx"
 
 # Run the function with the file path
 send_contacts(file_path)
