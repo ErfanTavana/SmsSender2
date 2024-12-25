@@ -5,6 +5,16 @@
 {% block content %}
     <div class="container mt-5">
         <h2>لیست مخاطبین</h2>
+
+        <!-- دکمه‌های خروجی گرفتن -->
+        <div class="mb-3">
+            <a href="?export=csv" class="btn btn-primary">خروجی CSV</a>
+            <a href="?export=txt" class="btn btn-secondary">خروجی TXT</a>
+            <!-- دکمه برای خروجی XLSX -->
+            <a href="?export=xlsx" class="btn btn-success">خروجی XLSX</a>
+
+        </div>
+
         <table class="table" style="border-collapse: collapse; width: 100%;">
             <thead>
             <tr style="background-color: #3e552b; color: white;">
@@ -29,9 +39,7 @@
                     <td>{{ contact.created_by.first_name }} {{ contact.created_by.last_name }}</td>
                     <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
-                        <!-- دکمه ویرایش -->
                         <a href="{% url 'edit_contact' contact.id %}" class="btn btn-sm btn-warning">ویرایش</a>
-
                         <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ contact.id }})">حذف</button>
                     </td>
                 </tr>
