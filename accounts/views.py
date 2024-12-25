@@ -178,7 +178,7 @@ class UserListView(UserAccessRequiredMixin, View):
 class UserEditView(UserAccessRequiredMixin, View):
     def get(self, request, user_id):
         # جلوگیری از ویرایش خود کاربر
-        if user_id == request.user.id:
+        if user_id == request.user.id and not request.user.is_superuser:
             return redirect('user_list')
 
         # یافتن کاربر با شناسه مشخص
