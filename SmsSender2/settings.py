@@ -28,7 +28,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,7 +38,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
-    # my app
+    # third-party apps
+    'import_export',  # اضافه کردن django-import-export
+    # my apps
     'accounts',
     'organizations',
     'contacts',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'sender',
     'home',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
