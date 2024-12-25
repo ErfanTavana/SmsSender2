@@ -229,7 +229,7 @@ class ContactListView(LoginRequiredMixin, View):
         # گرفتن نام جستجو از پارامترهای GET
         search_query = request.GET.get('search', '')
         # گرفتن مخاطبین مرتبط با سازمان کاربر و اعمال فیلتر بر اساس جستجو
-        contacts = Contact.objects.filter(organization_id=request.user.organization.id)
+        contacts = Contact.objects.filter(organization_id=request.user.organization.id).order_by('-created_at')
 
         if search_query:
             # تقسیم رشته جستجو به نام و نام خانوادگی
