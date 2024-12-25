@@ -12,6 +12,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect, get_object_or_404
 from .mixins import UserAccessRequiredMixin
+
 User = get_user_model()
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import render, redirect
@@ -69,6 +70,7 @@ class LogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('login')  # کاربر را به صفحه‌ی ورود هدایت می‌کند
+
 
 class UserCreateView(UserAccessRequiredMixin, View):
     def get(self, request):
@@ -209,8 +211,8 @@ class UserEditView(UserAccessRequiredMixin, View):
 
     def post(self, request, user_id):
         # جلوگیری از ویرایش خود کاربر
-        if user_id == request.user.id:
-            return redirect('user_list')  # یا می‌توانید یک پیام خطا نمایش دهید
+        if user_id == request.user.id and not request.user.is_superuser:
+            return redirect('user_list')
 
         user = get_object_or_404(User, id=user_id)
 
