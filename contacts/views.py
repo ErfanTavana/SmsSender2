@@ -23,6 +23,7 @@ from .models import Contact
 from django.db.models import Q
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
+
 User = get_user_model()
 
 
@@ -95,7 +96,6 @@ class ContactCreateApiView(APIView):
                 contact.groups.set([group_user])
                 contact.created_by = user
                 contact.save()
-
 
                 # گرفتن آخرین پیام ارسال‌شده به گروه‌ها
                 last_message = None
@@ -194,9 +194,26 @@ class ContactCreateView(ContactAccessRequiredMixin, View):
                       {'message': message, 'groups': Group.objects.filter(organization=request.user.organization)})
 
 
-import openpyxl
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.views import View
+from .models import Contact
+from .contact_resource import ContactResource
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import JsonResponse
+
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.views import View
+from .models import Contact
+from .contact_resource import ContactResource
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import JsonResponse
+
+from import_export.formats.base_formats import XLSX
+
 
 class ContactListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -205,9 +222,9 @@ class ContactListView(LoginRequiredMixin, View):
 
         # گرفتن نام جستجو از پارامترهای GET
         search_query = request.GET.get('search', '')
-
+        print(request.user.organization)
         # گرفتن مخاطبین مرتبط با سازمان کاربر و اعمال فیلتر بر اساس جستجو
-        contacts = Contact.objects.filter(organization=request.user.organization)
+        contacts = Contact.objects.filter(organization_id=request.user.organization.id)
 
         if search_query:
             # تقسیم رشته جستجو به نام و نام خانوادگی
@@ -216,9 +233,12 @@ class ContactListView(LoginRequiredMixin, View):
             # ساخت فیلتر برای جستجو
             filters = Q()
             for term in search_terms:
-                filters |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(phone_number__icontains=term)
+                filters |= Q(first_name__icontains=term) | Q(last_name__icontains=term) | Q(
+                    phone_number__icontains=term)
+
             contacts = contacts.filter(filters)
 
+        # بررسی اینکه آیا درخواست برای خروجی گرفتن است
         export_format = request.GET.get('export', None)
         if export_format:
             return self.export_contacts(request, contacts, export_format)
@@ -226,61 +246,31 @@ class ContactListView(LoginRequiredMixin, View):
         return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query})
 
     def export_contacts(self, request, contacts, export_format):
-        # اعمال محدودیت دسترسی برای کاربران
-        contacts = contacts.filter(organization=request.user.organization)
+        # استفاده از ContactResource برای صادرات داده‌ها
+        contact_resource = ContactResource(user=request.user)
 
         if export_format == 'csv':
-            return self.export_as_csv(contacts)
+            return self.export_as_csv(contact_resource, contacts)
         elif export_format == 'txt':
             return self.export_as_txt(contacts)
         elif export_format == 'xlsx':
-            return self.export_as_xlsx(contacts)  # اضافه کردن خروجی XLSX
+            return self.export_as_xlsx(contact_resource, contacts)
         else:
             return JsonResponse({'error': 'Unsupported format'}, status=400)
 
-    def export_as_xlsx(self, contacts):
-        """خروجی گرفتن از مخاطبین به فرمت XLSX"""
-        wb = openpyxl.Workbook()
-        sheet = wb.active
-        sheet.title = "Contacts"
-
-        # اضافه کردن سرستون‌ها
-        headers = ['شماره', 'نام', 'نام خانوادگی', 'شماره تلفن', 'جنسیت', 'ایجاد کننده', 'تاریخ ایجاد']
-        sheet.append(headers)
-
-        # اضافه کردن داده‌های مخاطبین
-        for contact in contacts:
-            row = [
-                contact.phone_number,
-                contact.first_name,
-                contact.last_name,
-                contact.phone_number,
-                contact.gender,
-                f"{contact.created_by.first_name} {contact.created_by.last_name}",
-                contact.created_at.strftime("%Y-%m-%d %H:%M")
-            ]
-            sheet.append(row)
-
-        # تنظیم پاسخ HTTP برای دانلود فایل Excel
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="contacts.xlsx"'
-
-        wb.save(response)
+    def export_as_csv(self, contact_resource, contacts):
+        """خروجی گرفتن از مخاطبین به فرمت CSV"""
+        dataset = contact_resource.export(contacts)  # ارسال داده‌ها به متد export
+        response = HttpResponse(dataset.csv, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="contacts.csv"'
         return response
 
-    def export_as_csv(self, contacts):
-        """خروجی گرفتن از مخاطبین به فرمت CSV"""
-        import csv
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="contacts.csv"'
-
-        writer = csv.writer(response)
-        writer.writerow(['شماره', 'نام', 'نام خانوادگی', 'شماره تلفن', 'جنسیت', 'ایجاد کننده', 'تاریخ ایجاد'])
-
-        for contact in contacts:
-            writer.writerow([contact.phone_number, contact.first_name, contact.last_name, contact.phone_number, contact.gender,
-                             f"{contact.created_by.first_name} {contact.created_by.last_name}", contact.created_at])
-
+    def export_as_xlsx(self, contact_resource, contacts):
+        """خروجی گرفتن از مخاطبین به فرمت XLSX"""
+        dataset = contact_resource.export(queryset=contacts, data=contacts)  # ارسال داده‌ها به متد export
+        response = HttpResponse(dataset.xlsx,
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="contacts.xlsx"'
         return response
 
     def export_as_txt(self, contacts):
@@ -289,15 +279,10 @@ class ContactListView(LoginRequiredMixin, View):
         response['Content-Disposition'] = 'attachment; filename="contacts.txt"'
 
         for contact in contacts:
-            response.write(f"شماره: {contact.phone_number}\n")
-            response.write(f"نام: {contact.first_name} {contact.last_name}\n")
-            response.write(f"شماره تلفن: {contact.phone_number}\n")
-            response.write(f"جنسیت: {contact.gender}\n")
-            response.write(f"ایجاد کننده: {contact.created_by.first_name} {contact.created_by.last_name}\n")
-            response.write(f"تاریخ ایجاد: {contact.created_at}\n")
-            response.write("-" * 40 + "\n")
+            response.write(f"{contact.phone_number}\n")
 
         return response
+
 
 class ContactEditView(ContactAccessRequiredMixin, View):
     def get(self, request, contact_id):
