@@ -8,46 +8,45 @@
 
         <!-- دکمه‌های خروجی گرفتن -->
         <div class="mb-3">
-            <a href="?export=csv" class="btn btn-primary">خروجی CSV</a>
             <a href="?export=txt" class="btn btn-secondary">خروجی TXT</a>
             <!-- دکمه برای خروجی XLSX -->
             <a href="?export=xlsx" class="btn btn-success">خروجی XLSX</a>
-
+            <button id="copy-numbers" class="btn btn-primary">کپی شماره‌ها</button>
         </div>
 
         <table class="table" style="border-collapse: collapse; width: 100%;">
             <thead>
-            <tr style="background-color: #3e552b; color: white;">
-                <th>شماره</th> <!-- ستون شماره -->
-                <th>نام</th>
-                <th>نام خانوادگی</th>
-                <th>شماره تلفن</th>
-                <th>جنسیت</th>
-                <th>ایجاد کننده</th>
-                <th>تاریخ ایجاد</th>
-                <th>عملیات</th>
-            </tr>
+                <tr style="background-color: #3e552b; color: white;">
+                    <th>شماره</th>
+                    <th>نام</th>
+                    <th>نام خانوادگی</th>
+                    <th>شماره تلفن</th>
+                    <th>جنسیت</th>
+                    <th>ایجاد کننده</th>
+                    <th>تاریخ ایجاد</th>
+                    <th>عملیات</th>
+                </tr>
             </thead>
             <tbody>
-            {% for contact in contacts %}
-                <tr style="background-color: #ccd4af;">
-                    <td>{{ forloop.counter }}</td> <!-- نمایش شماره ترتیب -->
-                    <td>{{ contact.first_name }}</td>
-                    <td>{{ contact.last_name }}</td>
-                    <td>{{ contact.phone_number }}</td>
-                    <td>{{ contact.gender }}</td>
-                    <td>{{ contact.created_by.first_name }} {{ contact.created_by.last_name }}</td>
-                    <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
-                    <td>
-                        <a href="{% url 'edit_contact' contact.id %}" class="btn btn-sm btn-warning">ویرایش</a>
-                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ contact.id }})">حذف</button>
-                    </td>
-                </tr>
-            {% empty %}
-                <tr>
-                    <td colspan="8" class="text-center">مخاطبی یافت نشد.</td>
-                </tr>
-            {% endfor %}
+                {% for contact in contacts %}
+                    <tr style="background-color: #ccd4af;">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ contact.first_name }}</td>
+                        <td>{{ contact.last_name }}</td>
+                        <td>{{ contact.phone_number }}</td> <!-- شماره تلفن -->
+                        <td>{{ contact.gender }}</td>
+                        <td>{{ contact.created_by.first_name }} {{ contact.created_by.last_name }}</td>
+                        <td>{{ contact.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'edit_contact' contact.id %}" class="btn btn-sm btn-warning">ویرایش</a>
+                            <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ contact.id }})">حذف</button>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">مخاطبی یافت نشد.</td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
@@ -58,5 +57,44 @@
                 window.location.href = "{% url 'delete_contact' 0 %}".replace(0, id);
             }
         }
+
+        // شماره‌ها از طریق context ویو
+        const phoneNumbers = {{ phone_numbers|safe }};
+
+        // دکمه کپی شماره‌ها
+        document.getElementById('copy-numbers').addEventListener('click', function () {
+            // تبدیل لیست شماره‌ها به یک رشته
+            const phoneNumbersString = phoneNumbers.join(',');
+
+            // بررسی اینکه آیا شماره‌ای برای کپی کردن وجود دارد
+            if (!phoneNumbersString) {
+                alert('شماره‌ای برای کپی کردن وجود ندارد.');
+                return;
+            }
+
+            // ایجاد یک تکست‌اریا موقت برای کپی کردن متن
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = phoneNumbersString;
+            tempTextarea.style.position = 'absolute';
+            tempTextarea.style.left = '-9999px'; // پنهان کردن تکست‌اریا
+            document.body.appendChild(tempTextarea);
+
+            // انتخاب و کپی متن
+            tempTextarea.select();
+            tempTextarea.setSelectionRange(0, tempTextarea.value.length); // برای سازگاری با موبایل
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('شماره‌ها با موفقیت کپی شدند.');
+                } else {
+                    alert('خطا در کپی شماره‌ها.');
+                }
+            } catch (err) {
+                alert('مرورگر شما از کپی کردن پشتیبانی نمی‌کند.');
+            }
+
+            // حذف تکست‌اریا موقت
+            document.body.removeChild(tempTextarea);
+        });
     </script>
 {% endblock %}

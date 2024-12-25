@@ -215,6 +215,12 @@ from django.http import JsonResponse
 from import_export.formats.base_formats import XLSX
 
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views import View
+from .models import Contact
+from django.db.models import Q
+
 class ContactListView(LoginRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -222,7 +228,6 @@ class ContactListView(LoginRequiredMixin, View):
 
         # گرفتن نام جستجو از پارامترهای GET
         search_query = request.GET.get('search', '')
-        print(request.user.organization)
         # گرفتن مخاطبین مرتبط با سازمان کاربر و اعمال فیلتر بر اساس جستجو
         contacts = Contact.objects.filter(organization_id=request.user.organization.id)
 
@@ -238,12 +243,15 @@ class ContactListView(LoginRequiredMixin, View):
 
             contacts = contacts.filter(filters)
 
+        # جمع‌آوری شماره‌ها برای ارسال به قالب
+        phone_numbers = [contact.phone_number for contact in contacts]
+
         # بررسی اینکه آیا درخواست برای خروجی گرفتن است
         export_format = request.GET.get('export', None)
         if export_format:
             return self.export_contacts(request, contacts, export_format)
 
-        return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query})
+        return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query, 'phone_numbers': phone_numbers})
 
     def export_contacts(self, request, contacts, export_format):
         # استفاده از ContactResource برای صادرات داده‌ها
