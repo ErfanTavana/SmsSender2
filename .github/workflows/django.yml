@@ -1,24 +1,24 @@
-# GitHub Actions workflow to deploy to Liara and set environment variables
-name: CD-Liara
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Update Liara CLI
-        run: npm install -g @liara/cli
-      - name: Deploy to Liara
-        env:
-          LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
-        run: liara deploy --app="${{ secrets.LIARA_APP_NAME }}" --api-token="$LIARA_TOKEN" --no-app-logs
-      - name: Run Django Migrate
-        env:
-          LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
-        run: liara shell --command="python manage.py migrate" --app="${{ secrets.LIARA_APP_NAME }}" --api-token="$LIARA_TOKEN" --debug
+## GitHub Actions workflow to deploy to Liara and set environment variables
+#name: CD-Liara
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#jobs:
+#  deploy:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Update Liara CLI
+#        run: npm install -g @liara/cli
+#      - name: Deploy to Liara
+#        env:
+#          LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
+#        run: liara deploy --app="${{ secrets.LIARA_APP_NAME }}" --api-token="$LIARA_TOKEN" --no-app-logs
+#      - name: Run Django Migrate
+#        env:
+#          LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
+#        run: liara shell --command="python manage.py migrate" --app="${{ secrets.LIARA_APP_NAME }}" --api-token="$LIARA_TOKEN" --debug
