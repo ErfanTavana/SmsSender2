@@ -1,7 +1,6 @@
+from django import forms
 from django.contrib import admin
 from .models import User
-from django import forms
-from django.contrib.auth.hashers import make_password
 
 class UserAdminForm(forms.ModelForm):
     class Meta:
@@ -11,8 +10,12 @@ class UserAdminForm(forms.ModelForm):
     def clean_password(self):
         password = self.cleaned_data.get("password")
         if password:
-            return make_password(password)  # هش کردن رمز عبور
+            # استفاده از set_password برای هش کردن رمز عبور
+            user = User()
+            user.set_password(password)  # هش کردن رمز عبور
+            return user.password  # برگشتن به رمز عبور هش شده
         return password
+
 
 class UserAdmin(admin.ModelAdmin):
     form = UserAdminForm  # استفاده از فرم سفارشی
