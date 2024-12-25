@@ -62,7 +62,7 @@ class ContactAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'phone_number', 'gender', 'organization', 'created_by')
     search_fields = ('first_name', 'last_name', 'phone_number', 'organization__name')
     list_filter = ('gender', 'organization', 'groups')
-    ordering = ('-first_name',)
+    ordering = ('-created_at',)
     fields = ('first_name', 'last_name', 'phone_number', 'gender', 'created_by', 'organization', 'groups')
     filter_horizontal = ('groups',)
     resource_class = ContactResource
