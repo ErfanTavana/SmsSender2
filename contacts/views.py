@@ -71,10 +71,9 @@ class ContactCreateApiView(APIView):
         phone_number = data.get('phone_number')
         normalized_phone_number = normalize_phone_number(phone_number)
 
-        # جستجو یا ایجاد مخاطب بر اساس شماره تلفن
         contact, created = Contact.objects.get_or_create(
             phone_number=normalized_phone_number,
-            defaults={'organization': organization_user}
+            organization=organization_user
         )
 
         # گرفتن شناسه گروه از داده‌ها
@@ -214,12 +213,12 @@ from django.http import JsonResponse
 
 from import_export.formats.base_formats import XLSX
 
-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from .models import Contact
 from django.db.models import Q
+
 
 class ContactListView(LoginRequiredMixin, View):
     def get(self, request):
@@ -251,7 +250,8 @@ class ContactListView(LoginRequiredMixin, View):
         if export_format:
             return self.export_contacts(request, contacts, export_format)
 
-        return render(request, 'contacts/contact_list.html', {'contacts': contacts, 'search_query': search_query, 'phone_numbers': phone_numbers})
+        return render(request, 'contacts/contact_list.html',
+                      {'contacts': contacts, 'search_query': search_query, 'phone_numbers': phone_numbers})
 
     def export_contacts(self, request, contacts, export_format):
         # استفاده از ContactResource برای صادرات داده‌ها
