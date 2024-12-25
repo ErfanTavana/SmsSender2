@@ -1,0 +1,57 @@
+@font-face {
+    font-family: vazir;
+    src: url(Vazirmatn-Regular.ttf);
+    font-style: normal;
+    font-weight: 400;
+}
+@font-face {
+    font-family: vazir;
+    src: url(Vazirmatn-Bold.ttf);
+    font-style: normal;
+    font-weight: 600;
+}
+@font-face {
+    font-family: vazir;
+    src: url(Vazirmatn-ExtraBold.ttf);
+    font-style: normal;
+    font-weight: 700;
+}
+
+body {
+    margin: 0;
+    font-family: vazir, sans-serif;
+}
+
+.fw-bold {
+    font-weight: bold;
+}
+
+.fs-48 {
+    font-size: 48px;
+}
+
+.header-sys {
+    background-color: #ccd4af;
+}
+
+.text-header-sys {
+    color: #3e552b;
+}
+
+.header-list-sys {
+    background-color: #cfffa8;
+    color: #479d00;
+}
+
+.contact-list {
+    overflow: auto;
+}
+
+.badge-waiting {
+    border: 1px solid #ff9100;
+    background-color: #ffeace;
+    color: #ff9100;
+    border-radius: 50px;
+    font-size: 12px;
+    padding: 2px 10px;
+}
