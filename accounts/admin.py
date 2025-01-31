@@ -2,26 +2,32 @@ from django import forms
 from django.contrib import admin
 from .models import User
 
+
 class UserAdminForm(forms.ModelForm):
+    change_password = forms.BooleanField(required=False, initial=False, label="Change Password")
+
     class Meta:
         model = User
         fields = '__all__'
 
     def clean_password(self):
         password = self.cleaned_data.get("password")
-        if password:
-            # استفاده از set_password برای هش کردن رمز عبور
-            user = User()
-            user.set_password(password)  # هش کردن رمز عبور
-            return user.password  # برگشتن به رمز عبور هش شده
-        return password
+        change_password = self.cleaned_data.get("change_password")
+
+        if change_password and password:
+            user = self.instance  # گرفتن نمونه‌ی موجود کاربر
+            if user.pk:  # اگر کاربر وجود داشته باشد
+                user.set_password(password)
+                return user.password  # بازگشت رمز عبور هش شده
+        return self.instance.password  # حفظ رمز عبور قبلی
 
 
 class UserAdmin(admin.ModelAdmin):
     form = UserAdminForm  # استفاده از فرم سفارشی
     fieldsets = (
         (None, {
-            'fields': ('phone_number', 'first_name', 'last_name', 'gender', 'password', 'organization')
+            'fields': (
+            'phone_number', 'first_name', 'last_name', 'gender', 'password', 'change_password', 'organization')
         }),
         ('Permissions', {
             'fields': (
@@ -37,6 +43,7 @@ class UserAdmin(admin.ModelAdmin):
     )
     list_display = ('phone_number', 'first_name', 'last_name', 'is_active', 'is_staff')
     search_fields = ('phone_number', 'first_name', 'last_name')
+
 
 # ثبت مدل User با تنظیمات سفارشی
 admin.site.register(User, UserAdmin)
