@@ -48,6 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                                      verbose_name="سازمان")
     groups = models.ManyToManyField("organizations.Group", verbose_name="گروه‌ها", related_name="users",
                                     blank=True)  # ارتباط با گروه‌ها
+    jihadi_group = models.ForeignKey('JihadiGroup', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="گروه جهادی")
 
     # Access control fields
     can_access_messages = models.BooleanField("access to messages", default=False,
@@ -78,3 +79,60 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'کاربر'
         verbose_name_plural = 'کاربرها'
+
+class JihadiGroup(models.Model):
+    name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="نام گروه جهادی"
+    )
+    leader_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="نام مسئول"
+    )
+    leader_national_id = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        verbose_name="کد ملی مسئول"
+    )
+    leader_contact_number = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name="شماره تماس مسئول"
+    )
+    deputy_name = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="نام مسئول دوم"
+    )
+    deputy_contact_number = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        verbose_name="شماره تماس مسئول دوم"
+    )
+    service_province = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="استان محل خدمت"
+    )
+    service_city = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="شهرستان محل خدمت"
+    )
+
+    class Meta:
+        verbose_name = "گروه جهادی"
+        verbose_name_plural = "گروه‌های جهادی"
+
+    def __str__(self):
+        return self.name or "گروه جهادی بدون نام"
