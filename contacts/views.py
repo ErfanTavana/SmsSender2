@@ -152,7 +152,8 @@ class ContactCreateView(ContactAccessRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')  # کاربر باید وارد شود
-
+        if not request.user.can_access_contacts:
+            return redirect('home')
         # گرفتن گروه‌ها برای انتخاب از جانب کاربر
         groups = Group.objects.filter(organization=request.user.organization)
 
@@ -161,6 +162,8 @@ class ContactCreateView(ContactAccessRequiredMixin, View):
     def post(self, request):
         if not request.user.is_authenticated:
             return redirect('login')  # کاربر باید وارد شود
+        if not request.user.can_access_contacts:
+            return redirect('home')
 
         # دریافت داده‌ها از فرم
         first_name = request.POST.get('first_name')
@@ -224,7 +227,8 @@ class ContactListView(LoginRequiredMixin, View):
     def get(self, request):
         if not request.user.is_authenticated:
             return redirect('login')  # کاربر باید وارد شود
-
+        if not request.user.can_access_contacts:
+            return redirect('home')
         # گرفتن نام جستجو از پارامترهای GET
         search_query = request.GET.get('search', '')
         # گرفتن مخاطبین مرتبط با سازمان کاربر و اعمال فیلتر بر اساس جستجو
@@ -254,6 +258,8 @@ class ContactListView(LoginRequiredMixin, View):
                       {'contacts': contacts, 'search_query': search_query, 'phone_numbers': phone_numbers})
 
     def export_contacts(self, request, contacts, export_format):
+        if not request.user.can_access_contacts:
+            return redirect('home')
         # استفاده از ContactResource برای صادرات داده‌ها
         contact_resource = ContactResource(user=request.user)
 
@@ -274,6 +280,7 @@ class ContactListView(LoginRequiredMixin, View):
         return response
 
     def export_as_xlsx(self, contact_resource, contacts):
+
         """خروجی گرفتن از مخاطبین به فرمت XLSX"""
         dataset = contact_resource.export(queryset=contacts, data=contacts)  # ارسال داده‌ها به متد export
         response = HttpResponse(dataset.xlsx,
@@ -296,6 +303,8 @@ class ContactEditView(ContactAccessRequiredMixin, View):
     def get(self, request, contact_id):
         if not request.user.is_authenticated:
             return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه ورود هدایت می‌شود
+        if not request.user.can_access_contacts:
+            return redirect('home')
 
         # پیدا کردن مخاطب با شناسه مشخص
         contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
@@ -311,7 +320,8 @@ class ContactEditView(ContactAccessRequiredMixin, View):
     def post(self, request, contact_id):
         if not request.user.is_authenticated:
             return redirect('login')  # اگر کاربر وارد نشده باشد، به صفحه ورود هدایت می‌شود
-
+        if not request.user.can_access_contacts:
+            return redirect('home')
         contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
 
         # دریافت داده‌های فرم
@@ -338,7 +348,8 @@ class ContactDeleteView(ContactAccessRequiredMixin, View):
     def get(self, request, contact_id):
         if not request.user.is_authenticated:
             return redirect('login')  # اگر کاربر وارد نشده باشد به صفحه ورود هدایت شود
-
+        if not request.user.can_access_contacts:
+            return redirect('home')
         # پیدا کردن مخاطب بر اساس شناسه
         contact = get_object_or_404(Contact, id=contact_id, organization=request.user.organization)
 
