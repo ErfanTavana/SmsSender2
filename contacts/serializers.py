@@ -7,7 +7,7 @@ from SmsSender2.utils import normalize_phone_number
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'sms_code']
 
 
 class ContactSerializer(serializers.ModelSerializer):
