@@ -47,14 +47,42 @@ class GroupListApiView(APIView):
         serializer = GroupSerializer(groups, many=True)
         return Response(data={'message': 'گروه‌ها', 'data': serializer.data}, status=status.HTTP_200_OK)
 
+import json
+
+def get_request_data(request):
+    """بررسی و استخراج داده از درخواست"""
+    try:
+        print(f"🔹 Content-Type: {request.content_type}")  # بررسی نوع داده دریافتی
+        print(f"🔹 Raw Body: {request.body}")  # بررسی متن خام دریافتی
+        print(f"🔹 Decoded Body: {request.body.decode('utf-8')}")  # بررسی متن دیکد شده
+
+        # بررسی هدر X-Device-Type برای درخواست‌های ESP32
+        if request.headers.get("X-Device-Type") == "esp32":
+            print("🛠️ درخواست از ESP32 است، تغییرات خاص را اعمال می‌کنیم.")
+            if request.content_type == "application/json":
+                return json.loads(request.body.decode('utf-8'))
+            return request.POST
+
+        # برای درخواست‌های غیر ESP32 تغییرات را اعمال نکنیم
+        print("🛠️ درخواست از دستگاه دیگر است، تغییرات اعمال نمی‌شود.")
+        if request.content_type == "application/json":
+            return json.loads(request.body.decode('utf-8'))
+        return request.data
+
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON Decode Error: {e}")
+        return {}
 
 class ContactCreateApiView(APIView):
+    print("------------------")
     def post(self, request):
+        data = get_request_data(request)
+        print("++++++++++++++")
+        print(data)
         # بررسی دسترسی کاربر و سازمان
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
             return error_response
-        data = request.data
         if not user.can_add_contacts:
             return Response({
                 'message': 'شما اجازه‌ی افزودن مخاطب را ندارید.',
