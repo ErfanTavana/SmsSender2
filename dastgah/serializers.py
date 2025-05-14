@@ -9,6 +9,11 @@ class DeviceSerializer(serializers.ModelSerializer):
 
 
 class DeviceLogSerializer(serializers.ModelSerializer):
+    device = serializers.SlugRelatedField(
+        slug_field='uid',
+        queryset=Device.objects.all()
+    )
+
     class Meta:
         model = DeviceLog
         fields = [
