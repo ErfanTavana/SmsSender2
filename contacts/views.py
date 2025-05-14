@@ -52,9 +52,9 @@ import json
 def get_request_data(request):
     """بررسی و استخراج داده از درخواست"""
     try:
-        print(f"🔹 Content-Type: {request.content_type}")  # بررسی نوع داده دریافتی
-        print(f"🔹 Raw Body: {request.body}")  # بررسی متن خام دریافتی
-        print(f"🔹 Decoded Body: {request.body.decode('utf-8')}")  # بررسی متن دیکد شده
+        # print(f"🔹 Content-Type: {request.content_type}")  # بررسی نوع داده دریافتی
+        # print(f"🔹 Raw Body: {request.body}")  # بررسی متن خام دریافتی
+        # print(f"🔹 Decoded Body: {request.body.decode('utf-8')}")  # بررسی متن دیکد شده
 
         # بررسی هدر X-Device-Type برای درخواست‌های ESP32
         if request.headers.get("X-Device-Type") == "esp32":
@@ -74,11 +74,8 @@ def get_request_data(request):
         return {}
 
 class ContactCreateApiView(APIView):
-    print("------------------")
     def post(self, request):
         data = get_request_data(request)
-        print("++++++++++++++")
-        print(data)
         # بررسی دسترسی کاربر و سازمان
         error_response, user, organization_user = check_user_organization(request)
         if error_response:
