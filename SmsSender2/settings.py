@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'text_messages',
     'sender',
     'home',
+    'dastgah',
 ]
 
 

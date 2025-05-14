@@ -30,6 +30,8 @@ urlpatterns = [
     path('organizations/', include('organizations.urls')),
 
     path('sender/', include('sender.urls')),
+    path('dastgah/', include('dastgah.urls')),
+
     path('', include('home.urls')),
 
 ]
