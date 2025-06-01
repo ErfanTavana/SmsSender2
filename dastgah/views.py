@@ -32,3 +32,33 @@ class DeviceLogCreateAPIView(APIView):
             return Response({"message": f"{len(logs)} log(s) created successfully"}, status=201)
 
         return Response(serializer.errors, status=400)
+
+
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import ReceivedSMS
+
+class ReceiveSMSAPIView(APIView):
+    """
+    API برای دریافت پیامک‌های دریافتی از سامانه پیامکی (POST)
+    """
+
+    def post(self, request, *args, **kwargs):
+        sender = request.data.get('from')
+        receiver = request.data.get('to')
+        message = request.data.get('message')
+
+        if not sender or not receiver or not message:
+            return Response({
+                "error": "پارامترهای from, to, message الزامی هستند."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        ReceivedSMS.objects.create(
+            sender=sender,
+            receiver=receiver,
+            message=message
+        )
+
+        return Response({"message": "پیام با موفقیت ذخیره شد."}, status=status.HTTP_201_CREATED)

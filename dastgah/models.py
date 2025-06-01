@@ -46,10 +46,20 @@ class DeviceLog(models.Model):
 
         # فقط اگر آخرین پاکسازی بیش از 5 دقیقه پیش انجام شده باشد
         if not DeviceLog._last_cleanup_time or (now - DeviceLog._last_cleanup_time) > timedelta(minutes=5):
-            threshold = now - timedelta(hours=24)
+            threshold = now - timedelta(hours=10)
             deleted_count, _ = DeviceLog.objects.filter(timestamp__lt=threshold).delete()
 
             print(f"[⏳ Cleanup] Deleted {deleted_count} old logs (older than 24h)")
             DeviceLog._last_cleanup_time = now
 
         super().save(*args, **kwargs)
+
+
+class ReceivedSMS(models.Model):
+    sender = models.CharField(max_length=20)  # شماره فرستنده
+    receiver = models.CharField(max_length=20)  # شماره گیرنده (شماره خط ما)
+    message = models.TextField()  # متن پیامک
+    received_at = models.DateTimeField(auto_now_add=True)  # زمان دریافت
+
+    def __str__(self):
+        return f"From {self.sender} to {self.receiver} at {self.received_at}"

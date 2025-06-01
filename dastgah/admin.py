@@ -51,3 +51,31 @@ class DeviceLogAdmin(admin.ModelAdmin):
             return "-"
         return ', '.join(f'{k}: {v}' for k, v in list(obj.extra_data.items())[:2])
     extra_data_summary.short_description = "Extra"
+
+
+from django.contrib import admin
+from .models import ReceivedSMS
+from django.contrib import admin
+from import_export.admin import ExportMixin
+from import_export import resources
+from .models import ReceivedSMS
+class ReceivedSMSResource(resources.ModelResource):
+    class Meta:
+        model = ReceivedSMS
+        fields = ('id', 'sender', 'receiver', 'message', 'received_at')
+
+# استفاده از ExportMixin برای افزودن دکمه خروجی اکسل
+@admin.register(ReceivedSMS)
+class ReceivedSMSAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = ReceivedSMSResource
+
+    list_display = ('sender', 'receiver', 'short_message', 'received_at')
+    list_filter = ('receiver', 'received_at')
+    search_fields = ('sender', 'receiver', 'message')
+    ordering = ('-received_at',)
+    readonly_fields = ('sender', 'receiver', 'message', 'received_at')
+    date_hierarchy = 'received_at'
+
+    def short_message(self, obj):
+        return (obj.message[:50] + '...') if len(obj.message) > 50 else obj.message
+    short_message.short_description = 'متن پیام'
