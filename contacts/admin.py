@@ -44,6 +44,38 @@ class Txt:
         return 'txt'
 from import_export import resources, fields, widgets
 from .models import Contact, Organization, Group
+from django.db.models import Q
+import re
+
+import re
+
+def normalize_phone_number(phone_number):
+    """
+    Normalize and validate Iranian phone numbers.
+    Returns the phone number in standard format (e.g., 09xxxxxxxxx).
+    """
+    phone_number = re.sub(r'\s+|-', '', phone_number)
+    pattern = r'^(?:\+98|0098|98|0)?(9\d{9})$'
+
+    # اگر شماره به صورت 10 رقمی باشد و با 9 شروع شود
+    if re.match(r'^(9\d{9})$', phone_number):
+        return '0' + phone_number
+
+    # اگر شماره از قبل استاندارد باشد
+    if re.match(r'^(09\d{9})$', phone_number):
+        return phone_number
+
+    # فرمت‌های بین‌المللی
+    elif re.match(pattern, phone_number):
+        if phone_number.startswith('+98'):
+            return '0' + phone_number[3:]
+        elif phone_number.startswith('0098'):
+            return '0' + phone_number[4:]
+        elif phone_number.startswith('98'):
+            return '0' + phone_number[2:]
+
+    raise ValueError("شماره تلفن معتبر نیست. شماره تلفن باید یک شماره معتبر ایرانی باشد.")
+
 
 class ContactResource(resources.ModelResource):
     organization = fields.Field(
@@ -72,19 +104,36 @@ class ContactResource(resources.ModelResource):
         export_order = fields
 
     def get_instance(self, instance_loader, row):
-        phone = row.get('phone_number')
+        raw_phone = row.get('phone_number')
         org_name = row.get('organization')
-        if phone and org_name:
+        normalized = None
+        if raw_phone and org_name:
+            try:
+                normalized = normalize_phone_number(str(raw_phone))
+                row['phone_number'] = normalized
+            except Exception as e:
+                raise ValueError(f"شماره تلفن '{raw_phone}' معتبر نیست: {e}")
+
             try:
                 org = Organization.objects.get(name=org_name)
             except Organization.DoesNotExist:
                 return None
-            qs = Contact.objects.filter(phone_number=phone, organization=org)
+
+            qs = Contact.objects.filter(phone_number=normalized, organization=org)
             if qs.exists():
                 return qs.first()
         return None
 
     def import_row(self, row, instance_loader, **kwargs):
+        raw_phone = row.get('phone_number')
+        normalized = None
+        if raw_phone:
+            try:
+                normalized = normalize_phone_number(str(raw_phone))
+                row['phone_number'] = normalized
+            except Exception as e:
+                raise ValueError(f"شماره تلفن '{raw_phone}' معتبر نیست: {e}")
+
         instance = self.get_instance(instance_loader, row)
         if instance:
             existing_groups = set(instance.groups.all())
@@ -95,6 +144,11 @@ class ContactResource(resources.ModelResource):
 
         if import_result.object_id:
             db_instance = Contact.objects.get(pk=import_result.object_id)
+
+            # فقط اگر نرمال‌سازی شده بود
+            if normalized:
+                db_instance.phone_number = normalized
+                db_instance.save()
 
             group_ids = row.get('groups_ids')
             if group_ids:
@@ -108,7 +162,6 @@ class ContactResource(resources.ModelResource):
             db_instance.groups.set(combined_groups)
 
         return import_result
-
 
 
 from import_export.admin import ImportExportModelAdmin
