@@ -42,23 +42,79 @@ class Txt:
         متد get_extension برای برگرداندن پسوند مناسب فایل TXT
         """
         return 'txt'
+from import_export import resources, fields, widgets
+from .models import Contact, Organization, Group
 
 class ContactResource(resources.ModelResource):
+    organization = fields.Field(
+        column_name='organization',
+        attribute='organization',
+        widget=widgets.ForeignKeyWidget(Organization, 'name')
+    )
+    groups_ids = fields.Field(
+        column_name='groups_ids',
+        attribute=None
+    )
+
     class Meta:
         model = Contact
         fields = (
-            'id', 'first_name', 'last_name', 'phone_number',
-            'gender', 'created_by__phone_number', 'organization__name',
-            'created_at'
+            'id',
+            'first_name',
+            'last_name',
+            'phone_number',
+            'gender',
+            'created_by__phone_number',
+            'organization',
+            'created_at',
+            'groups_ids',
         )
-        export_order = (
-            'id', 'first_name', 'last_name', 'phone_number',
-            'gender', 'created_by__phone_number', 'organization__name',
-            'created_at'
-        )
+        export_order = fields
+
+    def get_instance(self, instance_loader, row):
+        phone = row.get('phone_number')
+        org_name = row.get('organization')
+        if phone and org_name:
+            try:
+                org = Organization.objects.get(name=org_name)
+            except Organization.DoesNotExist:
+                return None
+            qs = Contact.objects.filter(phone_number=phone, organization=org)
+            if qs.exists():
+                return qs.first()
+        return None
+
+    def import_row(self, row, instance_loader, **kwargs):
+        instance = self.get_instance(instance_loader, row)
+        if instance:
+            existing_groups = set(instance.groups.all())
+        else:
+            existing_groups = set()
+
+        import_result = super().import_row(row, instance_loader, **kwargs)
+
+        if import_result.object_id:
+            db_instance = Contact.objects.get(pk=import_result.object_id)
+
+            group_ids = row.get('groups_ids')
+            if group_ids:
+                clean_ids = [int(i.strip()) for i in str(group_ids).split(',') if i.strip().isdigit()]
+                found_groups = list(Group.objects.filter(id__in=clean_ids))
+                new_groups = set(found_groups)
+            else:
+                new_groups = set()
+
+            combined_groups = existing_groups | new_groups
+            db_instance.groups.set(combined_groups)
+
+        return import_result
+
+
+
+from import_export.admin import ImportExportModelAdmin
 
 @admin.register(Contact)
-class ContactAdmin(ExportMixin, admin.ModelAdmin):
+class ContactAdmin(ImportExportModelAdmin):
     list_display = ('first_name', 'last_name', 'phone_number', 'gender', 'organization', 'created_by')
     search_fields = ('first_name', 'last_name', 'phone_number', 'organization__name')
     list_filter = ('gender', 'organization', 'groups')
@@ -70,5 +126,4 @@ class ContactAdmin(ExportMixin, admin.ModelAdmin):
     def get_export_formats(self):
         """اضافه کردن فرمت‌های مختلف به گزینه‌ها."""
         formats = super().get_export_formats()
-        # اضافه کردن فرمت‌های دیگر مانند TXT به فرمت‌ها
-        return formats + [XLSX, CSV, JSON, Txt]  # اضافه کردن کلاس Txt به لیست فرمت‌ها (بدون پرانتز)
+        return formats + [XLSX, CSV, JSON, Txt]
