@@ -3,16 +3,12 @@ from django.contrib import admin
 from import_export import resources, fields, widgets
 from import_export.formats.base_formats import XLSX, CSV, JSON
 from import_export.admin import ImportExportModelAdmin
-from django.db.models import Q
 
 from .models import Contact, Organization, Group
-from .forms import ContactImportForm  # اگر فرم سفارشی داری
+from .forms import ContactImportForm
 
 import re
-
-from import_export import resources, fields, widgets
-from .models import Contact, Organization, Group
-import re
+from import_export.results import RowResult
 
 
 def normalize_phone_number(phone_number):
@@ -40,11 +36,35 @@ def normalize_phone_number(phone_number):
     raise ValueError("شماره تلفن معتبر نیست. شماره تلفن باید یک شماره معتبر ایرانی باشد.")
 
 
+class Txt:
+    def get_title(self):
+        return "TXT"
+
+    def export_data(self, dataset, **kwargs):
+        output = StringIO()
+        for row in dataset.dict:
+            output.write(f"{row['phone_number']}\n")
+        return output.getvalue()
+
+    def is_binary(self):
+        return False
+
+    def get_content_type(self):
+        return "text/plain"
+
+    def get_extension(self):
+        return 'txt'
+
+
 class ContactResource(resources.ModelResource):
     organization = fields.Field(
-        column_name='organization',
+        column_name='organization_id',
         attribute='organization',
-        widget=widgets.ForeignKeyWidget(Organization, 'name')
+        widget=widgets.ForeignKeyWidget(Organization, 'id')
+    )
+    phone_number = fields.Field(
+        column_name='phone_number',
+        attribute='phone_number'
     )
     groups_ids = fields.Field(
         column_name='groups_ids',
@@ -77,78 +97,99 @@ class ContactResource(resources.ModelResource):
         }
         print("✅ before_import - update_name =", self.context['update_name'])
 
+        # حذف ردیف‌های خالی (صرفا لاگ می‌زند)
+        empty_rows = []
+        for i, row in enumerate(dataset.dict):
+            phone = row.get('phone_number')
+            org_id = row.get('organization_id')
+            if (
+                    not phone or str(phone).strip() in ["", "nan", "None"] or
+                    not org_id or str(org_id).strip() in ["", "nan", "None"]
+            ):
+                empty_rows.append(i)
+
+        if empty_rows:
+            print(f"⚠️ {len(empty_rows)} ردیف ناقص پیدا شد و در import_row نادیده گرفته می‌شوند.")
+
     def get_instance(self, instance_loader, row):
         raw_phone = row.get('phone_number')
-        org_name = row.get('organization')
-        if raw_phone and org_name:
-            try:
-                normalized = normalize_phone_number(str(raw_phone))
-                row['phone_number'] = normalized
-            except Exception as e:
-                raise ValueError(f"شماره تلفن '{raw_phone}' معتبر نیست: {e}")
+        org_id = row.get('organization_id')
+        print("💡 get_instance - raw_phone =", raw_phone)
+        print("💡 get_instance - org_id =", org_id)
 
-            try:
-                org = Organization.objects.get(name=org_name)
-            except Organization.DoesNotExist:
-                return None
+        if not raw_phone or not org_id:
+            return None
 
-            qs = Contact.objects.filter(phone_number=normalized, organization=org)
-            if qs.exists():
-                return qs.first()
+        normalized = normalize_phone_number(str(raw_phone))
+        row['phone_number'] = normalized
+
+        try:
+            org = Organization.objects.get(id=org_id)
+            print("✅ سازمان یافت شد:", org)
+        except Organization.DoesNotExist:
+            print(f"❌ سازمان با id={org_id} یافت نشد.")
+            return None
+
+        qs = Contact.objects.filter(phone_number=normalized, organization=org)
+        if qs.exists():
+            print("✅ رکورد موجود پیدا شد.")
+            return qs.first()
         return None
+
 
     def import_row(self, row, instance_loader, **kwargs):
         raw_phone = row.get('phone_number')
-        normalized = None
+        org_id = row.get('organization_id')
 
-        if raw_phone:
-            try:
-                normalized = normalize_phone_number(str(raw_phone))
-                row['phone_number'] = normalized
-            except Exception as e:
-                raise ValueError(f"شماره تلفن '{raw_phone}' معتبر نیست: {e}")
+        if (
+                not raw_phone or str(raw_phone).strip() in ["", "nan", "None"]
+                or not org_id or str(org_id).strip() in ["", "nan", "None"]
+        ):
+            print(f"⚠️ ردیف ناقص رد شد: {row}")
+            # ردیف Skip شود بدون خطا
+            row_result = RowResult()
+            row_result.import_type = RowResult.IMPORT_TYPE_SKIP
+            return row_result
+
+        try:
+            normalized = normalize_phone_number(str(raw_phone))
+            row['phone_number'] = normalized
+        except Exception as e:
+            print(f"❌ خطای اعتبارسنجی شماره تلفن: {e}")
+            row_result = RowResult()
+            row_result.import_type = RowResult.IMPORT_TYPE_SKIP
+            return row_result
 
         instance = self.get_instance(instance_loader, row)
-
-        if instance:
-            old_first_name = instance.first_name
-            old_last_name = instance.last_name
-            existing_groups = set(instance.groups.all())
-        else:
-            old_first_name = None
-            old_last_name = None
-            existing_groups = set()
+        existing_groups = set(instance.groups.all()) if instance else set()
 
         import_result = super().import_row(row, instance_loader, **kwargs)
 
-        if import_result.object_id:
+        if import_result and import_result.object_id:
             db_instance = Contact.objects.get(pk=import_result.object_id)
-
-            if normalized:
-                db_instance.phone_number = normalized
+            db_instance.phone_number = normalized
 
             update_name = self.context.get('update_name', False)
-
-            # اگر رکورد قدیمی بود و تیک نزدی، نام را برگردان
-            if instance and not update_name:
-                db_instance.first_name = old_first_name
-                db_instance.last_name = old_last_name
+            if update_name:
+                db_instance.first_name = row.get('first_name') or db_instance.first_name
+                db_instance.last_name = row.get('last_name') or db_instance.last_name
 
             db_instance.save()
 
             group_ids = row.get('groups_ids')
+            new_groups = set()
             if group_ids:
                 clean_ids = [int(i.strip()) for i in str(group_ids).split(',') if i.strip().isdigit()]
-                found_groups = list(Group.objects.filter(id__in=clean_ids))
-                new_groups = set(found_groups)
+                new_groups = set(Group.objects.filter(id__in=clean_ids))
+                print("✅ گروه‌های جدید:", new_groups)
             else:
-                new_groups = set()
+                print("ℹ️ گروهی برای این ردیف ثبت نشده.")
 
             combined_groups = existing_groups | new_groups
             db_instance.groups.set(combined_groups)
 
         return import_result
-# ادمین
+
 @admin.register(Contact)
 class ContactAdmin(ImportExportModelAdmin):
     list_display = ('first_name', 'last_name', 'phone_number', 'gender', 'organization', 'created_by')
@@ -158,7 +199,7 @@ class ContactAdmin(ImportExportModelAdmin):
     fields = ('first_name', 'last_name', 'phone_number', 'gender', 'created_by', 'organization', 'groups')
     filter_horizontal = ('groups',)
     resource_class = ContactResource
-    import_form_class = ContactImportForm  # اگر فرم نداری، این خط را بردار
+    import_form_class = ContactImportForm
 
     def get_export_formats(self):
         formats = super().get_export_formats()
