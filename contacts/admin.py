@@ -1,71 +1,34 @@
 from io import StringIO
 from django.contrib import admin
-from import_export.admin import ExportMixin
+from import_export import resources, fields, widgets
 from import_export.formats.base_formats import XLSX, CSV, JSON
-from import_export import resources
-from .models import Contact
+from import_export.admin import ImportExportModelAdmin
+from django.db.models import Q
 
-# تعریف فرمت TXT
-class Txt:
-    """
-    کلاس برای ایجاد خروجی به فرمت تکست.
-    """
-    def get_title(self):
-        return "TXT"  # عنوان برای نمایش در لیست فرمت‌ها
+from .models import Contact, Organization, Group
+from .forms import ContactImportForm  # اگر فرم سفارشی داری
 
-    def export_data(self, dataset, **kwargs):
-        """
-        داده‌ها را به فرمت تکست (txt) تبدیل می‌کند.
-        """
-        output = StringIO()
-        for row in dataset.dict:
-            # فقط شماره تماس‌ها را استخراج می‌کنیم
-            output.write(f"{row['phone_number']}\n")
-        return output.getvalue()
+import re
 
-    def is_binary(self):
-        """
-        متد is_binary برای فرمت تکست، که در اینجا False باز می‌گرداند،
-        چون داده‌ها به‌صورت متنی هستند.
-        """
-        return False
-
-    def get_content_type(self):
-        """
-        متد get_content_type برای تعیین نوع محتوای فایل TXT
-        که به صورت text/plain خواهد بود.
-        """
-        return "text/plain"
-
-    def get_extension(self):
-        """
-        متد get_extension برای برگرداندن پسوند مناسب فایل TXT
-        """
-        return 'txt'
 from import_export import resources, fields, widgets
 from .models import Contact, Organization, Group
-from django.db.models import Q
 import re
 
-import re
 
 def normalize_phone_number(phone_number):
     """
     Normalize and validate Iranian phone numbers.
-    Returns the phone number in standard format (e.g., 09xxxxxxxxx).
+    Returns the phone number in standard format (09xxxxxxxxx).
     """
     phone_number = re.sub(r'\s+|-', '', phone_number)
     pattern = r'^(?:\+98|0098|98|0)?(9\d{9})$'
 
-    # اگر شماره به صورت 10 رقمی باشد و با 9 شروع شود
     if re.match(r'^(9\d{9})$', phone_number):
         return '0' + phone_number
 
-    # اگر شماره از قبل استاندارد باشد
     if re.match(r'^(09\d{9})$', phone_number):
         return phone_number
 
-    # فرمت‌های بین‌المللی
     elif re.match(pattern, phone_number):
         if phone_number.startswith('+98'):
             return '0' + phone_number[3:]
@@ -88,6 +51,10 @@ class ContactResource(resources.ModelResource):
         attribute=None
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.context = {}
+
     class Meta:
         model = Contact
         fields = (
@@ -103,10 +70,16 @@ class ContactResource(resources.ModelResource):
         )
         export_order = fields
 
+    def before_import(self, dataset, using_transactions=None, dry_run=None, **kwargs):
+        form_data = kwargs.get('form')
+        self.context = {
+            'update_name': form_data.cleaned_data.get('update_name') if form_data else False
+        }
+        print("✅ before_import - update_name =", self.context['update_name'])
+
     def get_instance(self, instance_loader, row):
         raw_phone = row.get('phone_number')
         org_name = row.get('organization')
-        normalized = None
         if raw_phone and org_name:
             try:
                 normalized = normalize_phone_number(str(raw_phone))
@@ -127,6 +100,7 @@ class ContactResource(resources.ModelResource):
     def import_row(self, row, instance_loader, **kwargs):
         raw_phone = row.get('phone_number')
         normalized = None
+
         if raw_phone:
             try:
                 normalized = normalize_phone_number(str(raw_phone))
@@ -135,9 +109,14 @@ class ContactResource(resources.ModelResource):
                 raise ValueError(f"شماره تلفن '{raw_phone}' معتبر نیست: {e}")
 
         instance = self.get_instance(instance_loader, row)
+
         if instance:
+            old_first_name = instance.first_name
+            old_last_name = instance.last_name
             existing_groups = set(instance.groups.all())
         else:
+            old_first_name = None
+            old_last_name = None
             existing_groups = set()
 
         import_result = super().import_row(row, instance_loader, **kwargs)
@@ -145,10 +124,17 @@ class ContactResource(resources.ModelResource):
         if import_result.object_id:
             db_instance = Contact.objects.get(pk=import_result.object_id)
 
-            # فقط اگر نرمال‌سازی شده بود
             if normalized:
                 db_instance.phone_number = normalized
-                db_instance.save()
+
+            update_name = self.context.get('update_name', False)
+
+            # اگر رکورد قدیمی بود و تیک نزدی، نام را برگردان
+            if instance and not update_name:
+                db_instance.first_name = old_first_name
+                db_instance.last_name = old_last_name
+
+            db_instance.save()
 
             group_ids = row.get('groups_ids')
             if group_ids:
@@ -162,10 +148,7 @@ class ContactResource(resources.ModelResource):
             db_instance.groups.set(combined_groups)
 
         return import_result
-
-
-from import_export.admin import ImportExportModelAdmin
-
+# ادمین
 @admin.register(Contact)
 class ContactAdmin(ImportExportModelAdmin):
     list_display = ('first_name', 'last_name', 'phone_number', 'gender', 'organization', 'created_by')
@@ -175,8 +158,8 @@ class ContactAdmin(ImportExportModelAdmin):
     fields = ('first_name', 'last_name', 'phone_number', 'gender', 'created_by', 'organization', 'groups')
     filter_horizontal = ('groups',)
     resource_class = ContactResource
+    import_form_class = ContactImportForm  # اگر فرم نداری، این خط را بردار
 
     def get_export_formats(self):
-        """اضافه کردن فرمت‌های مختلف به گزینه‌ها."""
         formats = super().get_export_formats()
         return formats + [XLSX, CSV, JSON, Txt]
